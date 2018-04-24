@@ -3,3 +3,6 @@
 /BoardPanel.class
 /BoardTest.class
 /SudokuDialog.class
+/MultiEchoServer.class
+/EchoServer.class
+/EchoClient.class

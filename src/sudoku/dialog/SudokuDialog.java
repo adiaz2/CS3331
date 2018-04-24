@@ -73,6 +73,7 @@ public class SudokuDialog extends JFrame {
     
     private JButton undoButton;
     private JButton redoButton;
+    private JButton wirelessButton;
     
     private JMenuItem newGameMenuButton;
     private JMenuItem solveMenuButton;
@@ -217,6 +218,10 @@ public class SudokuDialog extends JFrame {
     		showMessage("Nothing to Redo");
     }
     
+    public void wirelessStart() {
+    	showMessage("Hello World");
+    }
+    
     public void checkWin() {
     	//if user successfully completes the board, congratulate and offer to start new game
 		if(board.isSolved()) {
@@ -328,6 +333,7 @@ public class SudokuDialog extends JFrame {
     	menuBar.add(menu);
     	undoButton = new JButton("Undo");
     	redoButton = new JButton("Redo");
+    	wirelessButton = new JButton("Wireless");
     	
     	newGameMenuButton = new JMenuItem("New Game");
     	solveMenuButton = new JMenuItem("Solve");
@@ -338,6 +344,8 @@ public class SudokuDialog extends JFrame {
 			undoButton.setIcon(new ImageIcon(img));
 			img = ImageIO.read(getClass().getResource(IMAGE_DIR + "redo.png"));
 			redoButton.setIcon(new ImageIcon(img));
+			img = ImageIO.read(getClass().getResource(IMAGE_DIR + "wireless.png"));
+			wirelessButton.setIcon(new ImageIcon(img));
 			img = ImageIO.read(getClass().getResource(IMAGE_DIR + "newGame.png"));
 			newGameMenuButton.setIcon(new ImageIcon(img));
 			img = ImageIO.read(getClass().getResource(IMAGE_DIR + "solve.png"));
@@ -348,23 +356,27 @@ public class SudokuDialog extends JFrame {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-        
-    	//ImageIcon img = new ImageIcon(IMAGE_DIR + "sudoku.png");
+		
+		redoButton.setToolTipText("Redo the last move you undid");
+    	toolBar.add(redoButton);
+    	redoButton.addActionListener(j -> redo());
     	
-    	undoButton.setToolTipText("Play a new game.");
+    	undoButton.setToolTipText("Undo your last move");
+    	toolBar.add(undoButton);
+    	undoButton.addActionListener(h -> undo());
+    	
+    	wirelessButton.setToolTipText("Connect wirelessly with another player!");
+    	toolBar.add(wirelessButton);
+    	wirelessButton.addActionListener(k -> wirelessStart());
+    	
     	newGameMenuButton.setMnemonic(KeyEvent.VK_N);
     	newGameMenuButton.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, ActionEvent.CTRL_MASK));
-    	toolBar.add(undoButton);
     	menu.add(newGameMenuButton);
-    	undoButton.addActionListener(h -> undo());
     	newGameMenuButton.addActionListener(d -> buttonPressed(1));
     	
-    	redoButton.setToolTipText("Solve the current puzzle.");
     	solveMenuButton.setMnemonic(KeyEvent.VK_S);
     	solveMenuButton.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
-    	toolBar.add(redoButton);
     	menu.add(solveMenuButton);
-    	redoButton.addActionListener(j -> redo());
     	solveMenuButton.addActionListener(d -> buttonPressed(2));
     	
     	checkMenuButton.setMnemonic(KeyEvent.VK_C);
