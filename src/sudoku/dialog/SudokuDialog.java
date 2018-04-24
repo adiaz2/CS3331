@@ -64,6 +64,8 @@ public class SudokuDialog extends JFrame {
     /** Special panel to display a Sudoku board. */
     private BoardPanel boardPanel;
 
+    private ChatDialogUI cdUI;
+    
     /** Message bar to display various messages. */
     private JLabel msgBar = new JLabel("");
     
@@ -219,7 +221,9 @@ public class SudokuDialog extends JFrame {
     }
     
     public void wirelessStart() {
-    	showMessage("Hello World");
+    	ChatDialogUI cdUI = new ChatDialogUI();
+	    cdUI.setVisible(true);
+	    cdUI.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     }
     
     public void checkWin() {
