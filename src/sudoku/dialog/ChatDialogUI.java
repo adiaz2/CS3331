@@ -89,11 +89,32 @@ import javax.swing.text.DefaultCaret;
 	}
     
 	/** Callback to be called when the connect button is clicked. */
-	 private void connectClicked(ActionEvent event) {
-	     try {
-			clientSocket = new Socket(serverEdit.getText(),Integer.parseInt(portEdit.getText()));
-			msgDisplay.setText("Connected to server!" + "\n" + msgDisplay.getText());
-		} catch (ConnectException e) {
+	private void connectClicked(ActionEvent event) {
+	    try {
+		ServerSocket server = new ServerSocket(8000);
+		while (true) {  
+		    Socket s = server.accept();
+		    BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
+		    PrintWriter out = new PrintWriter(new OutputStreamWriter(s.getOutputStream()));
+		    msgDisplay.setText("Connected to server!" + "\n" + msgDisplay.getText());
+		    out.print("Welcome to the Java EchoServer!");
+		    out.println("Enter BYE to exit.");
+		    out.flush();
+		    String str = null;
+		    while ((str = in.readLine()) != null) {
+		    	//System.out.println("Hello World");
+
+			System.out.println("Received: " + str);
+			out.println("Hello: " + str);
+			out.flush();
+			if (str.trim().equals("BYE")) {
+			    break;
+				}
+		    }
+		  
+		}
+		//s.close();
+	    } catch (ConnectException e) {
 			msgDisplay.setText("Unable to Connect to server: " + serverEdit.getText() + " Port: " + portEdit.getText() + "\n" + msgDisplay.getText());
 			e.printStackTrace();
 		} catch (UnknownHostException e) {
@@ -103,7 +124,12 @@ import javax.swing.text.DefaultCaret;
 			
 			e.printStackTrace();
 		}
-	 }
+	    System.out.println("Hello World");
+	    msgDisplay.setText("new text" + msgDisplay.getText());
+	    //--
+	    //-- WRITE YOUR CODE HERE
+	    //--
+	}
 	 
 	 /** Callback to be called when the send button is clicked. */
 	 private void sendClicked(ActionEvent event) {
