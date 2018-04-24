@@ -8,10 +8,14 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.ConnectException;
 import java.net.ServerSocket;
 import java.net.UnknownHostException;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -36,6 +40,7 @@ import javax.swing.text.DefaultCaret;
 	private JTextField portEdit;
 	private JTextArea msgDisplay;
 	private JTextField msgEdit;
+	public Socket clientSocket;
     
 	/** Create a main dialog. */
 	public ChatDialogUI() {
@@ -84,46 +89,46 @@ import javax.swing.text.DefaultCaret;
 	}
     
 	/** Callback to be called when the connect button is clicked. */
-	private void connectClicked(ActionEvent event) {
-	    try {
-		ServerSocket server = new ServerSocket(8000);
-		while (true) {  
-		    Socket s = server.accept();
-		    BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
-		    PrintWriter out = new PrintWriter(new OutputStreamWriter(s.getOutputStream()));
-
-		    out.print("Welcome to the Java EchoServer!");
-		    out.println("Enter BYE to exit.");
-		    System.out.println("Hello World");
-		    out.flush();
-		    String str = null;
-		    while ((str = in.readLine()) != null) {
-		    	//System.out.println("Hello World");
-
-			System.out.println("Received: " + str);
-			out.println("Hello: " + str);
-			out.flush();
-			if (str.trim().equals("BYE")) {
-			    break;
-				}
-		    }
-		  
+	 private void connectClicked(ActionEvent event) {
+	     try {
+			clientSocket = new Socket(serverEdit.getText(),Integer.parseInt(portEdit.getText()));
+			msgDisplay.setText("Connected to server!" + "\n" + msgDisplay.getText());
+		} catch (ConnectException e) {
+			msgDisplay.setText("Unable to Connect to server: " + serverEdit.getText() + " Port: " + portEdit.getText() + "\n" + msgDisplay.getText());
+			e.printStackTrace();
+		} catch (UnknownHostException e) {
+			msgDisplay.setText("Unknown Host" + "\n" + msgDisplay.getText());
+			e.printStackTrace();
+		} catch (IOException e) {
+			
+			e.printStackTrace();
 		}
-		//s.close();
-	    } catch (Exception e) { e.printStackTrace();}
-	    System.out.println("Hello World");
-	    msgDisplay.setText("new text" + msgDisplay.getText());
-	    //--
-	    //-- WRITE YOUR CODE HERE
-	    //--
-	}
-    
-	/** Callback to be called when the sendt button is clicked. */
-	private void sendClicked(ActionEvent event) {
-	    //--
-	    //-- WRITE YOUR CODE HERE
-	    //--
-	}
+	 }
+	 
+	 /** Callback to be called when the send button is clicked. */
+	 private void sendClicked(ActionEvent event) {
+	     
+		 try {
+			 PrintStream out = new PrintStream(clientSocket.getOutputStream());
+		     /* communicate with server */
+		     Supplier<String> userInput = () -> msgEdit.getText();
+			 
+			 Stream.generate(userInput)
+			.map(s -> {
+			    out.println(s);
+			    msgDisplay.setText("Server response: " + s);
+			    if(!"quit".equalsIgnoreCase(s)){
+			        msgEdit.getText();
+			    }
+			    return s;
+			})
+			.allMatch(s -> !"quit".equalsIgnoreCase(s));
+			 
+		 } catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+	 }
 
 	/** Show the given message in a dialog. */
 	private void warn(String msg) {
