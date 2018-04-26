@@ -7,3 +7,11 @@
 /EchoServer.class
 /EchoClient.class
 /ChatDialogUI.class
+/NetworkAdapter$MessageListener.class
+/NetworkAdapter$MessageType.class
+/NetworkAdapter$MessageWriter.class
+/NetworkAdapter.class
+/NetworkAdapterTest$FakeSoket.class
+/NetworkAdapterTest.class
+/NetworkAdapter$1.class
+/NetworkAdapter$MessageWriter$1.class

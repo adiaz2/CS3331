@@ -49,7 +49,7 @@ import javax.swing.text.DefaultCaret;
     
 	/** Create a main dialog of the given dimension. */
 	public ChatDialogUI(Dimension dim) {
-	    super((JFrame) null, "JavaChat");
+	    super((JFrame) null, "Sudoku Server");
 	    configureGui();
 	    setSize(dim);
 	    //setResizable(false);
@@ -154,7 +154,7 @@ import javax.swing.text.DefaultCaret;
 
 	/** Show the given message in a dialog. */
 	private void warn(String msg) {
-	    JOptionPane.showMessageDialog(this, msg, "JavaChat", JOptionPane.PLAIN_MESSAGE);        
+	    JOptionPane.showMessageDialog(this, msg, "Sudoku Server", JOptionPane.PLAIN_MESSAGE);        
 	}
     
 }

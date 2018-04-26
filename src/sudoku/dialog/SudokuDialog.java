@@ -1,4 +1,4 @@
-//Author: Alejandro Diaz
+//Author: Alejandro Diaz & Ryan Jones & Ian Gilliam
 //Assignment: CS3331 Lab 2 Sudoku: SudokuDialog.java
 //Instructor: Yoonsik Cheon
 //Last Modification: 3/3/2018
