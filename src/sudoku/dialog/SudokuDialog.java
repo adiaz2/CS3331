@@ -221,8 +221,9 @@ public class SudokuDialog extends JFrame {
     }
     
     public void wirelessStart() {
+    	
     	ChatDialogUI cdUI = new ChatDialogUI();
-	    cdUI.setVisible(true);
+    	cdUI.setVisible(true);
 	    cdUI.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     }
     

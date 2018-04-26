@@ -102,17 +102,16 @@ import javax.swing.text.DefaultCaret;
 		    out.flush();
 		    String str = null;
 		    while ((str = in.readLine()) != null) {
-		    	//System.out.println("Hello World");
-
 			System.out.println("Received: " + str);
+			msgDisplay.setText("Received: " + str +"\n" + msgDisplay.getText());
 			out.println("Hello: " + str);
 			out.flush();
 			if (str.trim().equals("BYE")) {
 			    break;
 				}
 		    }
-		  
 		}
+		//server.close();
 		//s.close();
 	    } catch (ConnectException e) {
 			msgDisplay.setText("Unable to Connect to server: " + serverEdit.getText() + " Port: " + portEdit.getText() + "\n" + msgDisplay.getText());
@@ -126,9 +125,6 @@ import javax.swing.text.DefaultCaret;
 		}
 	    System.out.println("Hello World");
 	    msgDisplay.setText("new text" + msgDisplay.getText());
-	    //--
-	    //-- WRITE YOUR CODE HERE
-	    //--
 	}
 	 
 	 /** Callback to be called when the send button is clicked. */
@@ -161,6 +157,4 @@ import javax.swing.text.DefaultCaret;
 	    JOptionPane.showMessageDialog(this, msg, "JavaChat", JOptionPane.PLAIN_MESSAGE);        
 	}
     
-	public static void main(String[] args) {
-	}
 }
