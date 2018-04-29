@@ -56,6 +56,7 @@ public class SudokuDialog extends JFrame {
     private final static Dimension DEFAULT_SIZE = new Dimension(310, 430);
 
     private final static String IMAGE_DIR = "/image/";
+    
     private Stack place = new Stack();
     private Stack removed = new Stack();
 
@@ -75,6 +76,9 @@ public class SudokuDialog extends JFrame {
     private JToolBar toolBar = new JToolBar();
     private JMenuBar menuBar = new JMenuBar();
     private JMenu menu = new JMenu("Menu");
+    
+    private JPanel curButtons;// these two are necessary for updating buttons allowed. 
+    private BorderLayout mainLayout = new BorderLayout(); 
     
     private JButton undoButton;
     private JButton redoButton;
@@ -262,8 +266,7 @@ public class SudokuDialog extends JFrame {
      */
     private void newClicked(int size) {
     		//if board has not been solved, ask the user if they want to quit and start a new game
-    		if(!board.isSolved())
-    		{
+    		if(!board.isSolved()) {
     			int reply = JOptionPane.showConfirmDialog(null, "Are you sure you want to quit the current game and start a new one?");
     			//if user says no, don't do anything else
     			if (reply == JOptionPane.NO_OPTION || reply == JOptionPane.CANCEL_OPTION)
@@ -275,6 +278,11 @@ public class SudokuDialog extends JFrame {
     		boardPanel.removeAll();
         board = new Board(size);
         boardPanel.setBoard(board);
+        //These two commented out will enable it to show less buttons when a new game is selected, 
+        // however the screen when a new game is made will be blanked until you try to widen or shrink the screen 
+        //then it will show up properly. 
+        //removeCurButtons();
+        //configureUI();
         repaint();
     }
     
@@ -288,43 +296,48 @@ public class SudokuDialog extends JFrame {
 
     /** Configure the UI. */
     private void configureUI() {
+
         setIconImage(createImageIcon("sudoku.png").getImage());
-        setLayout(new BorderLayout());
+        setLayout(mainLayout);
         
-        JPanel buttons = makeControlPanel();
+        curButtons = makeControlPanel();
         // boarder: top, left, bottom, right
-        buttons.setBorder(BorderFactory.createEmptyBorder(10,16,0,16));
-        add(buttons, BorderLayout.NORTH);
+        curButtons.setBorder(BorderFactory.createEmptyBorder(8,16,0,16));
+        add(curButtons, BorderLayout.NORTH);
         
         JPanel board = new JPanel();
-        board.setBorder(BorderFactory.createEmptyBorder(10,16,0,16));
+        board.setBorder(BorderFactory.createEmptyBorder(8,16,0,16));
         board.setLayout(new GridLayout(1,1));
+
         board.add(boardPanel);
         add(board, BorderLayout.CENTER);
         
         msgBar.setBorder(BorderFactory.createEmptyBorder(10,16,10,0));
+        msgBar.setBorder(BorderFactory.createEmptyBorder(10,16,10,0));
         add(msgBar, BorderLayout.SOUTH);
     }
-      
+    /** Determines what size of board the user will play with*/
+    private int verifySize() {
+        JFrame frame = new JFrame();
+        String[] options = new String[2];
+        options[0] = new String("4x4");
+        options[1] = new String("9x9");
+        int opt = JOptionPane.showOptionDialog(frame.getContentPane(),"Please select what size of board","New Game!", 0,JOptionPane.YES_NO_OPTION,null,options,null);
+        if(opt == JOptionPane.YES_OPTION){
+           return 4;
+        }else{
+           return 9;
+        }
+
+     }
+    /**Removes all current buttons for no overlay */
+    private void removeCurButtons(){
+        curButtons = null;
+        remove(mainLayout.getLayoutComponent(BorderLayout.NORTH));
+        remove(mainLayout.getLayoutComponent(BorderLayout.CENTER));
+     }
     /** Create a control panel consisting of new and number buttons. */
     private JPanel makeControlPanel() {
-    	JPanel newButtons = new JPanel(new FlowLayout());
-        JButton new4Button = new JButton("New (4x4)");
-        for (JButton button: new JButton[] { new4Button, new JButton("New (9x9)")}) {
-        	button.setFocusPainted(false);
-            button.addActionListener(e -> {
-                newClicked(e.getSource() == new4Button ? 4 : 9);
-            });
-
-            newButtons.add(button);
-    	}
-               
-    	newButtons.setAlignmentX(LEFT_ALIGNMENT);
-        
-    	makeToolbar();
-    	newButtons.add(toolBar);
-    	newButtons.add(menuBar);
-    	//frame.setJMenuBar(menuBar);
     	
     	// buttons labeled 1, 2, ..., 9, and X.
     	JPanel numberButtons = new JPanel(new FlowLayout());
@@ -335,74 +348,225 @@ public class SudokuDialog extends JFrame {
             button.setFocusPainted(false);
             button.setMargin(new Insets(0,2,0,2));
             button.addActionListener(e -> numberClicked(number));
-    		numberButtons.add(button);
+            if(i <= board.size || i == maxNumber) {
+               numberButtons.add(button);
+            }
     	}
-    	numberButtons.setAlignmentX(LEFT_ALIGNMENT);
+;
 
-    	JPanel content = new JPanel();
+
+
+       JMenuBar menuBar = new JMenuBar();
+
+       JMenu menu = new JMenu("Game");
+       menu.setMnemonic(KeyEvent.VK_G);
+       menu.getAccessibleContext().setAccessibleDescription("Game menu");
+       menuBar.add(menu);
+
+   	 
+   	   
+  	   
+
+       // This adds the first menu item.
+       JMenuItem menuItem = new JMenuItem("New game", KeyEvent.VK_N);
+       try{
+          Image img = ImageIO.read(getClass().getResource("image/playImage.png"));
+          menuItem.setIcon(new ImageIcon(img));
+       }catch(Exception e){
+          System.out.println("Error with image");
+       }
+
+       menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, ActionEvent.ALT_MASK));
+       menuItem.addActionListener(e -> {
+          newClicked(verifySize());
+       });
+
+       menuItem.getAccessibleContext().setAccessibleDescription("Play a new game");
+       menu.add(menuItem);
+
+
+       //This adds the second menu item
+       JMenuItem menuItem2 = new JMenuItem("Solve Puzzle", KeyEvent.VK_S);
+       try{
+          Image img = ImageIO.read(getClass().getResource("image/solveImage.png"));
+          menuItem2.setIcon(new ImageIcon(img));
+       }catch(Exception e){
+          System.out.println("Error with image");
+       }
+       menuItem2.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.ALT_MASK));
+       menuItem2.addActionListener(e -> buttonPressed(2));
+
+       menuItem2.getAccessibleContext().setAccessibleDescription("Print Board Solved.");
+       menu.add(menuItem2);
+
+
+       // THis adds the third menu item
+       JMenuItem menuItem3 = new JMenuItem("Determine if solvable", KeyEvent.VK_I);
+       try{
+          Image img = ImageIO.read(getClass().getResource("image/isSolve.png"));
+          menuItem3.setIcon(new ImageIcon(img));
+       }catch(Exception e){
+          System.out.println("Error with image");
+       }
+       menuItem3.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I, ActionEvent.ALT_MASK));
+       menuItem3.addActionListener(e -> buttonPressed(3));
+       menuItem3.getAccessibleContext().setAccessibleDescription("Find if solvable.");
+       menu.add(menuItem3);
+
+       // THis adds the fourth menu item
+       JMenuItem menuItem4 = new JMenuItem("Undo previous move.", KeyEvent.VK_Z);
+       try{
+          Image img = ImageIO.read(getClass().getResource("image/undoImage.png"));
+          menuItem4.setIcon(new ImageIcon(img));
+       }catch(Exception e){
+          System.out.println("Error with image");
+       }
+       menuItem4.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, ActionEvent.CTRL_MASK));
+       menuItem4.addActionListener(e -> undo());
+       menuItem4.getAccessibleContext().setAccessibleDescription("Undo the previous move made.");
+       menu.add(menuItem4);
+
+       // THis adds the fifth menu item
+       JMenuItem menuItem5 = new JMenuItem("Replace the previous undo.", KeyEvent.VK_R);
+       try{
+          Image img = ImageIO.read(getClass().getResource("image/replaceImage.png"));
+          menuItem5.setIcon(new ImageIcon(img));
+       }catch(Exception e){
+          System.out.println("Error with image");
+       }
+       menuItem5.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, ActionEvent.CTRL_MASK));
+       menuItem5.addActionListener(e -> redo());
+       menuItem5.getAccessibleContext().setAccessibleDescription("Replace the previous undo");
+       menu.add(menuItem5);
+
+
+
+       JToolBar toolBar = new JToolBar("Sudoku");//int top, int left, int bottom, int right
+       toolBar.setBorder(BorderFactory.createEmptyBorder(0, 0, 0,0));
+       menu.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
+       toolBar.setAlignmentX(CENTER_ALIGNMENT);
+       menu.setAlignmentX(CENTER_ALIGNMENT);
+       // buttons labeled 1, 2, ..., 5
+       for (int i = 0; i <= 5; i++) {
+          switch(i){
+             case(0):
+                JButton button = new JButton();
+                button.setMargin(new Insets(0,0,0,0));
+                try{
+                   Image img = ImageIO.read(getClass().getResource("image/playImage.png"));
+                   button.setIcon(new ImageIcon(img));
+                }catch(Exception e){
+                   System.out.println("Error with image");
+                }
+                button.setFocusPainted(false);
+
+                button.setFocusPainted(false);
+                button.addActionListener(e -> {
+                      newClicked(verifySize());
+                   });
+
+                button.setToolTipText("Play a new game");
+                toolBar.add(button);
+                break;
+             case(1):JButton button2 = new JButton();
+                button2.setMargin(new Insets(0,0,0,0));
+                try{
+                   Image img = ImageIO.read(getClass().getResource("image/solveImage.png"));
+                   button2.setIcon(new ImageIcon(img));
+                }catch(Exception e){
+                   System.out.println("Error with image");
+                }
+                button2.setFocusPainted(false);
+
+                button2.setFocusPainted(false);
+                button2.addActionListener(e -> buttonPressed(2));
+
+                button2.setToolTipText("Solve The Puzzle");
+                toolBar.add(button2);
+                break;
+             case(2):JButton button3 = new JButton();
+                button3.setMargin(new Insets(0,0,0,0));
+                try{
+                   Image img = ImageIO.read(getClass().getResource("image/isSolve.png"));
+                   button3.setIcon(new ImageIcon(img));
+                }catch(Exception e){
+                   System.out.println("Error with image");
+                }
+                button3.setFocusPainted(false);
+
+                button3.setFocusPainted(false);
+                button3.addActionListener(e -> buttonPressed(2));
+
+                button3.setToolTipText("See if the puzzle is solvable");
+                toolBar.add(button3);
+                break;
+             case(3):JButton button4 = new JButton();
+                button4.setMargin(new Insets(0,0,0,0));
+                try{
+                   Image img = ImageIO.read(getClass().getResource("image/undoImage.png"));
+                   button4.setIcon(new ImageIcon(img));
+                }catch(Exception e){
+                   System.out.println("Error with image");
+                }
+                button4.setFocusPainted(false);
+
+                button4.setFocusPainted(false);
+                button4.addActionListener(e ->  undo());
+
+                button4.setToolTipText("Undo previous move.");
+                toolBar.add(button4);
+                break;
+             case(4):JButton button5 = new JButton();
+                button5.setMargin(new Insets(0,0,0,0));
+                try{
+                   Image img = ImageIO.read(getClass().getResource("image/replaceImage.png"));
+                   button5.setIcon(new ImageIcon(img));
+                }catch(Exception e){
+                   System.out.println("Error with image");
+                }
+                button5.setFocusPainted(false);
+
+                button5.setFocusPainted(false);
+                button5.addActionListener(e -> redo());
+
+                button5.setToolTipText("Replace removed value.");
+                toolBar.add(button5);
+                break;
+             case(5): JButton button6 = new JButton();
+             button6.setMargin(new Insets(0,0,0,0));
+             try{
+                Image img = ImageIO.read(getClass().getResource("image/wireless.png"));
+                button6.setIcon(new ImageIcon(img));
+             }catch(Exception e){
+                System.out.println("Error with image");
+             }
+             button6.setFocusPainted(false);
+
+             button6.setFocusPainted(false);
+             button6.addActionListener(e ->  wirelessStart());
+
+             button6.setToolTipText("Connect wirelessly to another player!!!");
+             toolBar.add(button6);
+             break;
+          }
+
+       }// for loop
+
+
+
+       JPanel content = new JPanel();
     	content.setLayout(new BoxLayout(content, BoxLayout.PAGE_AXIS));
-        content.add(newButtons);
+        content.add(menuBar);
+        content.add(toolBar);
+    	  //content.add(newButtons);
         content.add(numberButtons);
+
         return content;
     }
+    	
+    	
+
     
-    public void makeToolbar() {
-    	menu.setMnemonic(KeyEvent.VK_M);
-    	menuBar.add(menu);
-    	undoButton = new JButton("Undo");
-    	redoButton = new JButton("Redo");
-    	wirelessButton = new JButton("Wireless");
-    	
-    	newGameMenuButton = new JMenuItem("New Game");
-    	solveMenuButton = new JMenuItem("Solve");
-    	checkMenuButton = new JMenuItem("Check");
-    	Image img;
-		try {
-			img = ImageIO.read(getClass().getResource(IMAGE_DIR + "undo.png"));
-			undoButton.setIcon(new ImageIcon(img));
-			img = ImageIO.read(getClass().getResource(IMAGE_DIR + "redo.png"));
-			redoButton.setIcon(new ImageIcon(img));
-			img = ImageIO.read(getClass().getResource(IMAGE_DIR + "wireless.png"));
-			wirelessButton.setIcon(new ImageIcon(img));
-			img = ImageIO.read(getClass().getResource(IMAGE_DIR + "newGame.png"));
-			newGameMenuButton.setIcon(new ImageIcon(img));
-			img = ImageIO.read(getClass().getResource(IMAGE_DIR + "solve.png"));
-			solveMenuButton.setIcon(new ImageIcon(img));
-			img = ImageIO.read(getClass().getResource(IMAGE_DIR + "check.png"));
-			checkMenuButton.setIcon(new ImageIcon(img));
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		redoButton.setToolTipText("Redo the last move you undid");
-    	toolBar.add(redoButton);
-    	redoButton.addActionListener(j -> redo());
-    	
-    	undoButton.setToolTipText("Undo your last move");
-    	toolBar.add(undoButton);
-    	undoButton.addActionListener(h -> undo());
-    	
-    	wirelessButton.setToolTipText("Connect wirelessly with another player!");
-    	toolBar.add(wirelessButton);
-    	wirelessButton.addActionListener(k -> wirelessStart());
-    	
-    	newGameMenuButton.setMnemonic(KeyEvent.VK_N);
-    	newGameMenuButton.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, ActionEvent.CTRL_MASK));
-    	menu.add(newGameMenuButton);
-    	newGameMenuButton.addActionListener(d -> buttonPressed(1));
-    	
-    	solveMenuButton.setMnemonic(KeyEvent.VK_S);
-    	solveMenuButton.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
-    	menu.add(solveMenuButton);
-    	solveMenuButton.addActionListener(d -> buttonPressed(2));
-    	
-    	checkMenuButton.setMnemonic(KeyEvent.VK_C);
-    	checkMenuButton.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.CTRL_MASK));
-    	menu.add(checkMenuButton);
-    	checkMenuButton.addActionListener(d -> buttonPressed(3));
-    	
-    }
     //handles when a tool bar button is pressed
     public void buttonPressed(int choice) {
     	switch(choice) 
