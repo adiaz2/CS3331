@@ -19,6 +19,7 @@ import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.io.EOFException;
 import java.io.IOException;
 import java.net.URL;
 import java.util.LinkedList;
@@ -69,7 +70,8 @@ public class SudokuDialog extends JFrame {
     private BoardPanel boardPanel;
 
     private ChatDialogUI cdUI;
-    
+    private Server servMain;
+    private Client clientMain; 
     /** Message bar to display various messages. */
     private JLabel msgBar = new JLabel("");
     
@@ -240,11 +242,23 @@ public class SudokuDialog extends JFrame {
     public void wirelessStart() {
     	//First lets see if a user would like to host or connect to 
     	if(verifyHost()) {
-    		
+    		servMain = new Server(); 
+    		try {
+               servMain.main(null);
+    		}catch( Exception e){
+    			System.out.println("Server ERROR!!!!!!");
+    		}  
     	}else {
-    	   ChatDialogUI cdUI = new ChatDialogUI();
-    	   cdUI.setVisible(true);
-	       cdUI.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    	   //ChatDialogUI cdUI = new ChatDialogUI();
+    	   //cdUI.setVisible(true);
+	       //cdUI.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    		clientMain = new Client(); 
+    		try {
+                clientMain.main(null);
+     		}catch( Exception e){
+     			System.out.println("Client ERROR!!!!!!");
+     		}
+    		
     	}   
     }
     

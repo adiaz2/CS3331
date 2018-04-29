@@ -15,3 +15,8 @@
 /NetworkAdapterTest.class
 /NetworkAdapter$1.class
 /NetworkAdapter$MessageWriter$1.class
+/ChatServer.class
+/ChatServer$ClientHandler.class
+/Chat.class
+/Server.class
+/Client.class
