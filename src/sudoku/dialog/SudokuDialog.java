@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.LinkedList;
 
+import java.util.Stack;
+
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -54,7 +56,8 @@ public class SudokuDialog extends JFrame {
     private final static Dimension DEFAULT_SIZE = new Dimension(310, 430);
 
     private final static String IMAGE_DIR = "/image/";
-    
+    private Stack place = new Stack();
+    private Stack removed = new Stack();
 
     /** Sudoku board. */
     private Board board;
@@ -146,8 +149,13 @@ public class SudokuDialog extends JFrame {
     			lastMoveX = x_y/100;
     			lastMoveY = x_y%100;
     			lastMove = board.boardInputs[x_y%100][x_y/100];
-    			redoPossible = false;
-    			undoPossible = true;
+    			
+    			int [] pushArray = {(lastMoveX),(lastMoveY), lastMove};
+                place.push(pushArray);
+                while(!removed.empty()){
+                   removed.pop();
+                }
+    			
     			board.boardInputs[x_y%100][x_y/100] = number; //setting the value to 0 removes it from the board
     			board.undoMove(); //used to keep track of how many squares have been filled out in the board
     			repaint(); //update board with the value removed
@@ -180,8 +188,17 @@ public class SudokuDialog extends JFrame {
     		lastMoveX = x_y/100;
     		lastMoveY = x_y%100;
     		lastMove = board.boardInputs[x_y%100][x_y/100];
-    		redoPossible = false;
-    		undoPossible = true;
+    	    
+    		if(lastMove == -1) {
+    		   int [] pushArray = {(lastMoveX),(lastMoveY), number};
+               place.push(pushArray);
+    		}else {
+    		  int [] pushArray = {(lastMoveX),(lastMoveY), number};
+              place.push(pushArray);
+              while(!removed.empty()){
+                 removed.pop();
+              }
+    		}
     		board.boardInputs[x_y%100][x_y/100] = number;
     		showMessage(""); //clear any previous error messages
     		board.playerMove(); //update the number of squares that have been filled
@@ -193,13 +210,11 @@ public class SudokuDialog extends JFrame {
     }
     
     public void undo() {
-    	if(undoPossible) {
-	    	redoMoveX = lastMoveX;
-	    	redoMoveY = lastMoveY;
-	    	redoMove = board.boardInputs[lastMoveY][lastMoveX];
-	    	board.boardInputs[lastMoveY][lastMoveX] = lastMove;
-	    	undoPossible = false;
-	    	redoPossible = true;
+    	if(!(place.empty())) {
+            int [] hld = (int [])place.pop();
+            removed.push(hld);
+            //System.out.println(hld[2]); 
+	    	board.boardInputs[hld[1]][hld[0]] = 0; 
 	    	repaint();
     	}
     	else
@@ -207,13 +222,11 @@ public class SudokuDialog extends JFrame {
     }
     
     public void redo() {
-    	if(redoPossible) {
-	    	lastMoveX = redoMoveX;
-	    	lastMoveY = redoMoveY;
-	    	lastMove = board.boardInputs[redoMoveY][redoMoveX];
-	    	board.boardInputs[redoMoveY][redoMoveX] = redoMove;
-	    	redoPossible = false;
-	    	undoPossible = true;
+    	if(!(removed.empty())) {
+    		int [] hld = (int [])removed.pop();
+            place.push(hld);
+	    	board.boardInputs[hld[1]][hld[0]] = hld[2];
+
 	    	repaint();
     	}
     	else
