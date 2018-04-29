@@ -238,12 +238,31 @@ public class SudokuDialog extends JFrame {
     }
     
     public void wirelessStart() {
-    	
-    	ChatDialogUI cdUI = new ChatDialogUI();
-    	cdUI.setVisible(true);
-	    cdUI.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    	//First lets see if a user would like to host or connect to 
+    	if(verifyHost()) {
+    		
+    	}else {
+    	   ChatDialogUI cdUI = new ChatDialogUI();
+    	   cdUI.setVisible(true);
+	       cdUI.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    	}   
     }
     
+    /**This will help to determine if a user wants to connect to the server or just a chat dialog. */
+    private boolean verifyHost() {
+       JFrame frame = new JFrame();
+       
+       String[] options = new String[2];
+       options[0] = new String("HOST");
+       options[1] = new String("CLIENT");
+       int opt = JOptionPane.showOptionDialog(frame.getContentPane(),"Please select if you would like to host or not.","Wireless Connection!", 0,JOptionPane.YES_NO_OPTION,null,options,null);
+       if(opt == JOptionPane.YES_OPTION){
+          return true;
+       }else{
+          return false;
+       }
+
+    }
     public void checkWin() {
     	//if user successfully completes the board, congratulate and offer to start new game
 		if(board.isSolved()) {
@@ -439,6 +458,18 @@ public class SudokuDialog extends JFrame {
        menuItem5.getAccessibleContext().setAccessibleDescription("Replace the previous undo");
        menu.add(menuItem5);
 
+       // THis adds the wireless menu option. 
+       JMenuItem menuItem6 = new JMenuItem("Connect wirelessly to another player.", KeyEvent.VK_Q);
+       try{
+          Image img = ImageIO.read(getClass().getResource("image/wireless.png"));
+          menuItem6.setIcon(new ImageIcon(img));
+       }catch(Exception e){
+          System.out.println("Error with image");
+       }
+       menuItem6.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, ActionEvent.CTRL_MASK));
+       menuItem6.addActionListener(e -> wirelessStart());
+       menuItem6.getAccessibleContext().setAccessibleDescription("Connect to another player.");
+       menu.add(menuItem6);
 
 
        JToolBar toolBar = new JToolBar("Sudoku");//int top, int left, int bottom, int right
