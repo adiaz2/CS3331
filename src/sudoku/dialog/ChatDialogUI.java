@@ -46,6 +46,10 @@ import javax.swing.text.DefaultCaret;
 	public ChatDialogUI() {
 	    this(DIMENSION);
 	}
+	
+	public void displayText(String str) {
+		msgDisplay.setText(str + "\n" + msgDisplay.getText());
+	}
     
 	/** Create a main dialog of the given dimension. */
 	public ChatDialogUI(Dimension dim) {
@@ -53,7 +57,14 @@ import javax.swing.text.DefaultCaret;
 	    configureGui();
 	    setSize(dim);
 	    //setResizable(false);
-	    connectButton.addActionListener(this::connectClicked);
+	    connectButton.addActionListener(e -> {
+			try {
+				connectClicked(e);
+			} catch (IOException f) {
+				// TODO Auto-generated catch block
+				f.printStackTrace();
+			}
+		});
 	    sendButton.addActionListener(this::sendClicked);
 	    setLocationRelativeTo(null);
 	}
@@ -88,31 +99,39 @@ import javax.swing.text.DefaultCaret;
 	    add(sendPanel, BorderLayout.SOUTH);
 	}
     
-	/** Callback to be called when the connect button is clicked. */
-	private void connectClicked(ActionEvent event) {
-	    try {
+	/** Callback to be called when the connect button is clicked. 
+	 * @throws IOException */
+	private void connectClicked(ActionEvent event) throws IOException {
+		String str = "";
+		try {
 		ServerSocket server = new ServerSocket(8000);
-		while (true) {  
-		    Socket s = server.accept();
-		    BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
-		    PrintWriter out = new PrintWriter(new OutputStreamWriter(s.getOutputStream()));
-		    msgDisplay.setText("Connected to server!" + "\n" + msgDisplay.getText());
+		Socket s = server.accept();
+		BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
+	    PrintWriter out = new PrintWriter(new OutputStreamWriter(s.getOutputStream()));
+	    
+		while ((str = in.readLine()) != null) {  
+			System.out.println("Hello");
+			displayText("Hello");
+		    
+		    
 		    out.print("Welcome to the Java EchoServer!");
 		    out.println("Enter BYE to exit.");
 		    out.flush();
-		    String str = null;
+		    
 		    while ((str = in.readLine()) != null) {
-			System.out.println("Received: " + str);
-			msgDisplay.setText("Received: " + str +"\n" + msgDisplay.getText());
+			out.println("Received: " + str);
+			displayText("Received: " + str);
 			out.println("Hello: " + str);
 			out.flush();
 			if (str.trim().equals("BYE")) {
 			    break;
 				}
 		    }
+		    return;
+		    
 		}
-		//server.close();
-		//s.close();
+		server.close();
+		return;
 	    } catch (ConnectException e) {
 			msgDisplay.setText("Unable to Connect to server: " + serverEdit.getText() + " Port: " + portEdit.getText() + "\n" + msgDisplay.getText());
 			e.printStackTrace();
@@ -120,11 +139,8 @@ import javax.swing.text.DefaultCaret;
 			msgDisplay.setText("Unknown Host" + "\n" + msgDisplay.getText());
 			e.printStackTrace();
 		} catch (IOException e) {
-			
 			e.printStackTrace();
 		}
-	    System.out.println("Hello World");
-	    msgDisplay.setText("new text" + msgDisplay.getText());
 	}
 	 
 	 /** Callback to be called when the send button is clicked. */

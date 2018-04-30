@@ -12,8 +12,8 @@ public class EchoClient {
          PrintWriter out = new PrintWriter(new OutputStreamWriter(
               socket.getOutputStream()));
          for (int i = 1; i <= 10; i++) {
-        	   System.out.println("Sending: line " + i);
-        	   System.out.println("line " + i);
+        	   out.println("Sending: line " + i);
+        	   out.println("line " + i);
         	   out.flush();
         	}
         	out.print("BYE");
@@ -21,9 +21,9 @@ public class EchoClient {
 
         	// receive data from server
         	String str = null;
-        	while ((str = in.readLine()) != null) {
-        	   System.out.println(str);
-        	}
+//        	while ((str = in.readLine()) != null) {
+//        	   System.out.println(str);
+//        	}
          socket.close();
        } catch (Exception e) {
          e.printStackTrace();
