@@ -127,11 +127,6 @@ import javax.swing.text.DefaultCaret;
 			    break;
 				}
 		    }
-		    return;
-		    
-		}
-		server.close();
-		return;
 	    } catch (ConnectException e) {
 			msgDisplay.setText("Unable to Connect to server: " + serverEdit.getText() + " Port: " + portEdit.getText() + "\n" + msgDisplay.getText());
 			e.printStackTrace();
