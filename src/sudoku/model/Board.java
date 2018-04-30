@@ -39,6 +39,12 @@ public class Board {
 		numEmpty = size*size; //there are n^2 squares in the board
 		newPuzzle();
     }
+    
+    public Board(int[][] b){
+        this.size = b.length;
+		numEmpty = b.length*b.length; //there are n^2 squares in the board
+		boardInputs = b;
+    }
 
     /** Return the size of this board. */
     public int size() {

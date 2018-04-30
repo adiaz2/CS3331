@@ -71,7 +71,9 @@ public class SudokuDialog extends JFrame {
 
     private ChatDialogUI cdUI;
     private Server servMain;
-    private Client clientMain; 
+    private Client clientMain;
+    private boolean isServer;
+    private boolean isClient;
     /** Message bar to display various messages. */
     private JLabel msgBar = new JLabel("");
     
@@ -133,8 +135,9 @@ public class SudokuDialog extends JFrame {
     /**
      * Callback to be invoked when a number button is clicked.
      * @param number Clicked number (1-9), or 0 for "X".
+     * @throws IOException 
      */
-    private void numberClicked(int number){
+    private void numberClicked(int number) throws IOException{
     		//get the currently selected x and y values
     		x_y = boardPanel.getX_y(); //gets the user's currently selected coordinates
     		
@@ -163,6 +166,9 @@ public class SudokuDialog extends JFrame {
                 }
     			
     			board.boardInputs[x_y%100][x_y/100] = number; //setting the value to 0 removes it from the board
+    			System.out.println(isServer);
+    			
+    				
     			board.undoMove(); //used to keep track of how many squares have been filled out in the board
     			repaint(); //update board with the value removed
     			return;
@@ -206,6 +212,14 @@ public class SudokuDialog extends JFrame {
               }
     		}
     		board.boardInputs[x_y%100][x_y/100] = number;
+    		
+    		if(isServer) {
+				String[] move = {Integer.toString(x_y%100), Integer.toString(x_y/100), Integer.toString(number)};
+				servMain.sendMessage(move);
+			}else if(isClient) {
+				
+			}
+    		
     		showMessage(""); //clear any previous error messages
     		board.playerMove(); //update the number of squares that have been filled
     		boardPanel.setX_y(-1); //Make it so no square is selected now
@@ -239,26 +253,21 @@ public class SudokuDialog extends JFrame {
     		showMessage("Nothing to Redo");
     }
     
-    public void wirelessStart() {
+    public void wirelessStart() throws IOException, Exception {
     	//First lets see if a user would like to host or connect to 
     	if(verifyHost()) {
-    		servMain = new Server(); 
-    		try {
-               servMain.main(null);
-    		}catch( Exception e){
-    			System.out.println("Server ERROR!!!!!!");
-    		}  
+    		System.out.println("Hello World");
+    		servMain = new Server();   
+    		isServer = true;
+    		servMain.sendBoard(board.boardInputs);
+    		System.out.println("Hello");
     	}else {
     	   //ChatDialogUI cdUI = new ChatDialogUI();
     	   //cdUI.setVisible(true);
 	       //cdUI.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-    		clientMain = new Client(); 
-    		try {
-                clientMain.main(null);
-     		}catch( Exception e){
-     			System.out.println("Client ERROR!!!!!!");
-     		}
-    		
+    		clientMain = new Client();
+    		board.boardInputs = clientMain.getBoard();
+    		repaint();
     	}   
     }
     
@@ -380,7 +389,14 @@ public class SudokuDialog extends JFrame {
             JButton button = new JButton(number == 0 ? "X" : String.valueOf(number));
             button.setFocusPainted(false);
             button.setMargin(new Insets(0,2,0,2));
-            button.addActionListener(e -> numberClicked(number));
+            button.addActionListener(e -> {
+				try {
+					numberClicked(number);
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			});
             if(i <= board.size || i == maxNumber) {
                numberButtons.add(button);
             }
@@ -481,7 +497,17 @@ public class SudokuDialog extends JFrame {
           System.out.println("Error with image");
        }
        menuItem6.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, ActionEvent.CTRL_MASK));
-       menuItem6.addActionListener(e -> wirelessStart());
+       menuItem6.addActionListener(e -> {
+		try {
+			wirelessStart();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+	});
        menuItem6.getAccessibleContext().setAccessibleDescription("Connect to another player.");
        menu.add(menuItem6);
 
@@ -588,7 +614,17 @@ public class SudokuDialog extends JFrame {
              button6.setFocusPainted(false);
 
              button6.setFocusPainted(false);
-             button6.addActionListener(e ->  wirelessStart());
+             button6.addActionListener(e ->  {
+				try {
+					wirelessStart();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			});
 
              button6.setToolTipText("Connect wirelessly to another player!!!");
              toolBar.add(button6);
