@@ -22,6 +22,7 @@ import java.awt.event.KeyEvent;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.BindException;
+import java.net.ConnectException;
 import java.net.URL;
 import java.util.LinkedList;
 
@@ -264,15 +265,15 @@ public class SudokuDialog extends JFrame {
     	//First lets see if a user would like to host or connect to 
     	int port;
     	boolean isBindedToPort = false;
-    	int bindingTries = 5;
+    	int tries = 5;
     	if(verifyHost()) {
     		while (true){
     			try {
-    				if (bindingTries <= 0){
-	    				JOptionPane.showMessageDialog(null, "Error: out of connection tries","Error Message",JOptionPane.ERROR_MESSAGE);
+    				if (tries <= 0){
+	    				JOptionPane.showMessageDialog(null, "Error: out of binding tries","Error Message",JOptionPane.ERROR_MESSAGE);
 	    				break;
 	    			}
-    				bindingTries--;
+    				tries--;
 		    		port = selectPort();
 		    		//System.out.println("Trying port:" + port);//debuggin' code
 		    		//System.out.println("Num tries left: " + bindingTries);
@@ -292,8 +293,20 @@ public class SudokuDialog extends JFrame {
     	   //ChatDialogUI cdUI = new ChatDialogUI();
     	   //cdUI.setVisible(true);
 	       //cdUI.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-
-    		clientMain = new Client(boardPanel);
+    		while (true) {
+    			if (tries <= 0){
+    				JOptionPane.showMessageDialog(null, "Error: out of connection tries","Error Message",JOptionPane.ERROR_MESSAGE);
+    				break;
+    			}
+				tries--;
+	    		port = selectPort();
+	    		try {
+	    			clientMain = new Client(boardPanel, port);
+	    			break;
+	    		}catch(ConnectException e){
+	    			JOptionPane.showMessageDialog(null, "Error: connection refused","Error Message",JOptionPane.ERROR_MESSAGE);
+	    		}
+    		}
     		isClient = true;
     		int[][] bI = clientMain.getBoard();
     		int[][] solution = clientMain.getBoard();

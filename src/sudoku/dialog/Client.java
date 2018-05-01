@@ -24,9 +24,9 @@ public class Client extends Thread
     Board board;
     BoardPanel boardPanel;
     
-	public Client(BoardPanel bP) throws Exception, IOException {
+	public Client(BoardPanel bP, int port) throws Exception, IOException {
 		boardPanel = bP;
-		sock = new Socket("localhost", 3000);
+		sock = new Socket("localhost", port);
 	    // reading from keyboard (keyRead object)
 		
 	    keyRead = new BufferedReader(new InputStreamReader(System.in));
