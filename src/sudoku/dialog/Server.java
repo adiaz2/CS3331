@@ -4,6 +4,9 @@ package sudoku.dialog;
 import java.io.*;
 import java.net.*;
 import java.util.LinkedList;
+
+import javax.swing.JOptionPane;
+
 import java.awt.*;
 
 import sudoku.model.Board;
@@ -20,6 +23,7 @@ public class Server extends Thread
     Board board;
     private LinkedList<Integer> errors;
     boolean gotMsg = false;
+    boolean newGameDeclined = false;
 
 	public Server(BoardPanel bP, int port) throws Exception {
 		boardPanel = bP;
@@ -101,6 +105,14 @@ public class Server extends Thread
 			    		boardPanel.repaint();
 					}
 					else if(received.equals("new")) {
+						int reply = JOptionPane.showConfirmDialog(null, "Request for new game, accept?");
+		    			//if user says no, don't do anything else
+		    			if (reply == JOptionPane.NO_OPTION || reply == JOptionPane.CANCEL_OPTION)
+		    		    {
+		    				//pwrite.println("declined new game");
+		    				return;
+		    		    }
+		    			//pwrite.println("accepted new game");
 						boardPanel.removeAll();
 						int[][] bI = getBoard();
 			    		int[][] solution = getBoard();
@@ -108,6 +120,18 @@ public class Server extends Thread
 			    		boardPanel.setBoard(board);
 			    		boardPanel.repaint();
 					}
+					/*
+					else if(received.equals("declined new game"))
+					{
+						newGameDeclined = true;
+						return;
+					}
+					else if(received.equals("accepted new game"))
+					{
+						newGameDeclined = false;
+						return;
+					}
+					*/
 					else {
 				   move[i] = Integer.parseInt(received);
 				   i++;
@@ -124,6 +148,8 @@ public class Server extends Thread
 			   }
 		} catch (NumberFormatException e) {
 			e.printStackTrace();
+		} catch (SocketException e) {
+			JOptionPane.showMessageDialog(null, "Error: connection reset","Error Message",JOptionPane.ERROR_MESSAGE);
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (Exception e) {

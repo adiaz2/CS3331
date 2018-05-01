@@ -16,6 +16,7 @@ public class Client extends Thread
     OutputStream ostream;
     PrintWriter pwrite;
     boolean gotMsg = false;
+    boolean newGameDeclined = false;
     private LinkedList<Integer> errors;
 
     // receiving from server ( receiveRead  object)
@@ -24,9 +25,9 @@ public class Client extends Thread
     Board board;
     BoardPanel boardPanel;
     
-	public Client(BoardPanel bP, int port) throws Exception, IOException {
+	public Client(BoardPanel bP, String host_ip, int port) throws Exception, IOException {
 		boardPanel = bP;
-		sock = new Socket("localhost", port);
+		sock = new Socket(host_ip, port);
 	    // reading from keyboard (keyRead object)
 		
 	    keyRead = new BufferedReader(new InputStreamReader(System.in));
@@ -100,6 +101,7 @@ public class Client extends Thread
 	   public void setBoard(Board b) {
 		   board = b;
 	   }
+	   
 	   public void run() {
 		   String received = "";
 		   int i = 0;
@@ -117,6 +119,14 @@ public class Client extends Thread
 			    		boardPanel.setErrors(errors);
 			    		boardPanel.repaint();
 					}else if(received.equals("new")) {
+						int reply = JOptionPane.showConfirmDialog(null, "Request for new game, accept?");
+		    			//if user says no, don't do anything else
+		    			if (reply == JOptionPane.NO_OPTION || reply == JOptionPane.CANCEL_OPTION)
+		    		    {
+		    				//pwrite.println("declined new game");
+		    				return;
+		    		    }
+		    			//pwrite.println("accepted new game");
 						System.out.println("1");
 						boardPanel.removeAll();
 						System.out.println("2");
@@ -128,6 +138,18 @@ public class Client extends Thread
 			    		boardPanel.setBoard(board);
 			    		boardPanel.repaint();
 					}
+					/*
+					else if(received.equals("declined new game"))
+					{
+						newGameDeclined = true;
+						return;
+					}
+					else if(received.equals("accepted new game"))
+					{
+						newGameDeclined = false;
+						return;
+					}
+					*/
 					else {
 					   move[i] = Integer.parseInt(received);
 					   i++;
@@ -141,6 +163,8 @@ public class Client extends Thread
 				   }
 			} catch (NumberFormatException e) {
 				e.printStackTrace();
+			} catch (SocketException e) {
+				JOptionPane.showMessageDialog(null, "Error: connection reset","Error Message",JOptionPane.ERROR_MESSAGE);
 			} catch (IOException e) {
 				e.printStackTrace();
 			} catch (Exception e) {

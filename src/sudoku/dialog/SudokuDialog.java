@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.net.BindException;
 import java.net.ConnectException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.LinkedList;
 
 import java.util.Stack;
@@ -261,9 +262,16 @@ public class SudokuDialog extends JFrame {
     	return Integer.parseInt(JOptionPane.showInputDialog(frame.getContentPane(),"Please enter port to attempt connection","Port Selection",JOptionPane.PLAIN_MESSAGE));
     }
     
+    public String selectIP()
+    {
+    	JFrame frame = new JFrame();
+    	return JOptionPane.showInputDialog(frame.getContentPane(),"Please enter host IP to attempt connection","IP Selection",JOptionPane.PLAIN_MESSAGE);
+    }
+    
     public void wirelessStart() throws IOException, Exception {
     	//First lets see if a user would like to host or connect to 
     	int port;
+    	String host_ip;
     	boolean isBindedToPort = false;
     	int tries = 5;
     	if(verifyHost()) {
@@ -300,11 +308,14 @@ public class SudokuDialog extends JFrame {
     			}
 				tries--;
 	    		port = selectPort();
+	    		host_ip = selectIP();
 	    		try {
-	    			clientMain = new Client(boardPanel, port);
+	    			clientMain = new Client(boardPanel, host_ip, port);
 	    			break;
 	    		}catch(ConnectException e){
 	    			JOptionPane.showMessageDialog(null, "Error: connection refused","Error Message",JOptionPane.ERROR_MESSAGE);
+	    		}catch(UnknownHostException e) {
+	    			JOptionPane.showMessageDialog(null, "Error: unknown host: \"" + host_ip + "\"","Error Message",JOptionPane.ERROR_MESSAGE);
 	    		}
     		}
     		isClient = true;
@@ -377,14 +388,16 @@ public class SudokuDialog extends JFrame {
     		      return;
     		    }
     		}
-    		//clear out the board and add a new board of the requested size
-    		boardPanel.removeAll();
-    		board = new Board(size);
-    		boardPanel.setBoard(board);
     		if(isServer) {
     			//sendSolution(1);
     			String[] s = {"new"};
     			servMain.sendMessage(s);
+    			if(servMain.newGameDeclined)
+    				return;
+    			//clear out the board and add a new board of the requested size
+        		boardPanel.removeAll();
+        		board = new Board(size);
+        		boardPanel.setBoard(board);
     			servMain.sendBoard(board.boardInputs);
         		servMain.sendBoard(board.solvedPuzzle);
     		}
@@ -392,6 +405,12 @@ public class SudokuDialog extends JFrame {
     			//sendSolution(2);
     			String[] s = {"new"};
     			clientMain.sendMessage(s);
+    			if(clientMain.newGameDeclined)
+    				return;
+    			//clear out the board and add a new board of the requested size
+        		boardPanel.removeAll();
+        		board = new Board(size);
+        		boardPanel.setBoard(board);
     			clientMain.sendBoard(board.boardInputs);
         		clientMain.sendBoard(board.solvedPuzzle);
     		}
