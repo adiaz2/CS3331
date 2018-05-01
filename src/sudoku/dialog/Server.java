@@ -28,6 +28,7 @@ public class Server extends Thread
 	public Server(BoardPanel bP, int port) throws Exception {
 		boardPanel = bP;
 		sersock = new ServerSocket(port);
+		
 	    sock = sersock.accept( );
 	    // reading from keyboard (keyRead object)
 	    keyRead = new BufferedReader(new InputStreamReader(System.in));
@@ -36,7 +37,7 @@ public class Server extends Thread
 	    pwrite = new PrintWriter(ostream, true);
 	    istream = sock.getInputStream();
 	    receiveRead = new BufferedReader(new InputStreamReader(istream));
-
+		
 	}
 
 	public void sendMessage(String[] move) throws IOException {

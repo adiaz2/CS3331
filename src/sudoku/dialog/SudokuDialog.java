@@ -23,6 +23,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.net.BindException;
 import java.net.ConnectException;
+import java.net.InetAddress;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.LinkedList;
@@ -270,10 +271,12 @@ public class SudokuDialog extends JFrame {
     
     public void wirelessStart() throws IOException, Exception {
     	//First lets see if a user would like to host or connect to 
-    	int port;
+    	int port = 8000;
     	String host_ip;
+    	
     	boolean isBindedToPort = false;
     	int tries = 5;
+    	String serverIP = InetAddress.getLocalHost().getHostAddress();
     	if(verifyHost()) {
     		while (true){
     			try {
@@ -283,10 +286,11 @@ public class SudokuDialog extends JFrame {
 	    			}
     				tries--;
 		    		port = selectPort();
+		    		JOptionPane.showMessageDialog(null, "Server started on port: " + Integer.toString(port) + " and IP: " + serverIP,"Server Message",JOptionPane.INFORMATION_MESSAGE);
 		    		//System.out.println("Trying port:" + port);//debuggin' code
 		    		//System.out.println("Num tries left: " + bindingTries);
 		    		servMain = new Server(boardPanel, port);
-		    		
+		    			    		
 		    		break;
 	    		}catch (BindException e){
 	    			JOptionPane.showMessageDialog(null, "Error: port already in use","Error Message",JOptionPane.ERROR_MESSAGE);
@@ -297,6 +301,7 @@ public class SudokuDialog extends JFrame {
     		servMain.sendBoard(board.boardInputs);
     		servMain.sendBoard(board.solvedPuzzle);
     		servMain.start();
+    		JOptionPane.showMessageDialog(null, "Connection Successfully Established!" ,"Server Message",JOptionPane.INFORMATION_MESSAGE);
     	}else {
     	   //ChatDialogUI cdUI = new ChatDialogUI();
     	   //cdUI.setVisible(true);
