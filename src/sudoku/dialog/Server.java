@@ -21,9 +21,9 @@ public class Server extends Thread
     private LinkedList<Integer> errors;
     boolean gotMsg = false;
 
-	public Server(BoardPanel bP) throws Exception {
+	public Server(BoardPanel bP, int port) throws Exception {
 		boardPanel = bP;
-		sersock = new ServerSocket(3000);
+		sersock = new ServerSocket(port);
 	    sock = sersock.accept( );
 	    // reading from keyboard (keyRead object)
 	    keyRead = new BufferedReader(new InputStreamReader(System.in));

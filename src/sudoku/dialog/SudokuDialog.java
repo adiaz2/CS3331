@@ -21,6 +21,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.EOFException;
 import java.io.IOException;
+import java.net.BindException;
 import java.net.URL;
 import java.util.LinkedList;
 
@@ -38,6 +39,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 
@@ -252,10 +254,35 @@ public class SudokuDialog extends JFrame {
     		showMessage("Nothing to Redo");
     }
     
+    public int selectPort()
+    { 	
+    	JFrame frame = new JFrame();
+    	return Integer.parseInt(JOptionPane.showInputDialog(frame.getContentPane(),"Please enter port to attempt connection","Port Selection",JOptionPane.PLAIN_MESSAGE));
+    }
+    
     public void wirelessStart() throws IOException, Exception {
     	//First lets see if a user would like to host or connect to 
+    	int port;
+    	boolean isBindedToPort = false;
+    	int bindingTries = 5;
     	if(verifyHost()) {
-    		servMain = new Server(boardPanel);   
+    		while (true){
+    			try {
+    				if (bindingTries <= 0){
+	    				JOptionPane.showMessageDialog(null, "Error: out of connection tries","Error Message",JOptionPane.ERROR_MESSAGE);
+	    				break;
+	    			}
+    				bindingTries--;
+		    		port = selectPort();
+		    		//System.out.println("Trying port:" + port);//debuggin' code
+		    		//System.out.println("Num tries left: " + bindingTries);
+		    		servMain = new Server(boardPanel, port);
+		    		
+		    		break;
+	    		}catch (BindException e){
+	    			JOptionPane.showMessageDialog(null, "Error: port already in use","Error Message",JOptionPane.ERROR_MESSAGE);
+	    		}
+    		}
     		isServer = true;
     		servMain.setBoard(board);
     		servMain.sendBoard(board.boardInputs);
@@ -265,6 +292,7 @@ public class SudokuDialog extends JFrame {
     	   //ChatDialogUI cdUI = new ChatDialogUI();
     	   //cdUI.setVisible(true);
 	       //cdUI.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+
     		clientMain = new Client(boardPanel);
     		isClient = true;
     		int[][] bI = clientMain.getBoard();
