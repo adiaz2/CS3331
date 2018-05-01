@@ -166,7 +166,6 @@ public class SudokuDialog extends JFrame {
                 }
     			
     			board.boardInputs[x_y%100][x_y/100] = number; //setting the value to 0 removes it from the board
-    			System.out.println(isServer);
     			
     				
     			board.undoMove(); //used to keep track of how many squares have been filled out in the board
@@ -217,14 +216,14 @@ public class SudokuDialog extends JFrame {
 				String[] move = {Integer.toString(x_y%100), Integer.toString(x_y/100), Integer.toString(number)};
 				servMain.sendMessage(move);
 			}else if(isClient) {
-				
+				String[] move = {Integer.toString(x_y%100), Integer.toString(x_y/100), Integer.toString(number)};
+				clientMain.sendMessage(move);
 			}
     		
     		showMessage(""); //clear any previous error messages
     		board.playerMove(); //update the number of squares that have been filled
     		boardPanel.setX_y(-1); //Make it so no square is selected now
     		repaint();
-    		
     		checkWin();
     		
     }
@@ -256,25 +255,45 @@ public class SudokuDialog extends JFrame {
     public void wirelessStart() throws IOException, Exception {
     	//First lets see if a user would like to host or connect to 
     	if(verifyHost()) {
-    		System.out.println("Hello World");
-    		servMain = new Server();   
+    		servMain = new Server(boardPanel);   
     		isServer = true;
+    		servMain.setBoard(board);
     		servMain.sendBoard(board.boardInputs);
-    		System.out.println("Hello");
+    		servMain.sendBoard(board.solvedPuzzle);
+    		servMain.start();
     	}else {
     	   //ChatDialogUI cdUI = new ChatDialogUI();
     	   //cdUI.setVisible(true);
 	       //cdUI.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-    		clientMain = new Client();
-    		board.boardInputs = clientMain.getBoard();
+    		clientMain = new Client(boardPanel);
+    		isClient = true;
+    		int[][] bI = clientMain.getBoard();
+    		int[][] solution = clientMain.getBoard();
+    		initializeBoard(bI, solution);
+    		boardPanel.setBoard(board);
+    		clientMain.setBoard(board);
     		repaint();
+    		clientMain.start();
     	}   
+    }
+
+	private void initializeBoard(int[][] bI, int[][] solution){
+    	board = new Board(bI.length);
+    	board.boardInputs = bI;
+    	board.solvedPuzzle = solution;
+    	for(int i = 0; i<board.boardInputs.length; i++) {
+			for(int j = 0; j<board.boardInputs.length; j++) {
+				if(board.boardInputs[i][j] != 0)
+					board.boardGenerated[i][j] = true;
+				else
+					board.boardGenerated[i][j] = false;
+			}
+		}
     }
     
     /**This will help to determine if a user wants to connect to the server or just a chat dialog. */
     private boolean verifyHost() {
        JFrame frame = new JFrame();
-       
        String[] options = new String[2];
        options[0] = new String("HOST");
        options[1] = new String("CLIENT");
@@ -305,8 +324,9 @@ public class SudokuDialog extends JFrame {
      * otherwise, prompt the user for a confirmation and then proceed
      * accordingly.
      * @param size Requested puzzle size, either 4 or 9.
+     * @throws IOException 
      */
-    private void newClicked(int size) {
+    private void newClicked(int size) throws IOException {
     		//if board has not been solved, ask the user if they want to quit and start a new game
     		if(!board.isSolved()) {
     			int reply = JOptionPane.showConfirmDialog(null, "Are you sure you want to quit the current game and start a new one?");
@@ -318,8 +338,22 @@ public class SudokuDialog extends JFrame {
     		}
     		//clear out the board and add a new board of the requested size
     		boardPanel.removeAll();
-        board = new Board(size);
-        boardPanel.setBoard(board);
+    		board = new Board(size);
+    		boardPanel.setBoard(board);
+    		if(isServer) {
+    			//sendSolution(1);
+    			String[] s = {"new"};
+    			servMain.sendMessage(s);
+    			servMain.sendBoard(board.boardInputs);
+        		servMain.sendBoard(board.solvedPuzzle);
+    		}
+    		else if(isClient) {
+    			//sendSolution(2);
+    			String[] s = {"new"};
+    			clientMain.sendMessage(s);
+    			clientMain.sendBoard(board.boardInputs);
+        		clientMain.sendBoard(board.solvedPuzzle);
+    		}
         //These two commented out will enable it to show less buttons when a new game is selected, 
         // however the screen when a new game is made will be blanked until you try to widen or shrink the screen 
         //then it will show up properly. 
@@ -427,7 +461,12 @@ public class SudokuDialog extends JFrame {
 
        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, ActionEvent.ALT_MASK));
        menuItem.addActionListener(e -> {
-          newClicked(verifySize());
+          try {
+			newClicked(verifySize());
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
        });
 
        menuItem.getAccessibleContext().setAccessibleDescription("Play a new game");
@@ -443,7 +482,14 @@ public class SudokuDialog extends JFrame {
           System.out.println("Error with image");
        }
        menuItem2.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.ALT_MASK));
-       menuItem2.addActionListener(e -> buttonPressed(2));
+       menuItem2.addActionListener(e -> {
+		try {
+			buttonPressed(2);
+		} catch (IOException e5) {
+			// TODO Auto-generated catch block
+			e5.printStackTrace();
+		}
+	});
 
        menuItem2.getAccessibleContext().setAccessibleDescription("Print Board Solved.");
        menu.add(menuItem2);
@@ -458,7 +504,14 @@ public class SudokuDialog extends JFrame {
           System.out.println("Error with image");
        }
        menuItem3.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I, ActionEvent.ALT_MASK));
-       menuItem3.addActionListener(e -> buttonPressed(3));
+       menuItem3.addActionListener(e -> {
+		try {
+			buttonPressed(3);
+		} catch (IOException e4) {
+			// TODO Auto-generated catch block
+			e4.printStackTrace();
+		}
+	});
        menuItem3.getAccessibleContext().setAccessibleDescription("Find if solvable.");
        menu.add(menuItem3);
 
@@ -533,7 +586,12 @@ public class SudokuDialog extends JFrame {
 
                 button.setFocusPainted(false);
                 button.addActionListener(e -> {
-                      newClicked(verifySize());
+                      try {
+						newClicked(verifySize());
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
                    });
 
                 button.setToolTipText("Play a new game");
@@ -550,7 +608,14 @@ public class SudokuDialog extends JFrame {
                 button2.setFocusPainted(false);
 
                 button2.setFocusPainted(false);
-                button2.addActionListener(e -> buttonPressed(2));
+                button2.addActionListener(e -> {
+					try {
+						buttonPressed(2);
+					} catch (IOException e3) {
+						// TODO Auto-generated catch block
+						e3.printStackTrace();
+					}
+				});
 
                 button2.setToolTipText("Solve The Puzzle");
                 toolBar.add(button2);
@@ -566,7 +631,14 @@ public class SudokuDialog extends JFrame {
                 button3.setFocusPainted(false);
 
                 button3.setFocusPainted(false);
-                button3.addActionListener(e -> buttonPressed(2));
+                button3.addActionListener(e -> {
+					try {
+						buttonPressed(3);
+					} catch (IOException e2) {
+						// TODO Auto-generated catch block
+						e2.printStackTrace();
+					}
+				});
 
                 button3.setToolTipText("See if the puzzle is solvable");
                 toolBar.add(button3);
@@ -645,21 +717,53 @@ public class SudokuDialog extends JFrame {
         return content;
     }
     	
-    	
+    void sendSolution(int choice) throws IOException {
+    	for(int i = 0; i<board.size; i++) {
+    		for(int j = 0; j<board.size; j++) {
+    			String[] move = {Integer.toString(i), Integer.toString(j), Integer.toString(board.boardInputs[i][j])};
+    			if(isServer) {
+    				servMain.sendMessage(move);
+    			}
+    			else if(isClient) {
+    				clientMain.sendMessage(move);
+    			}
+    		}
+    	}
+    }
 
     
     //handles when a tool bar button is pressed
-    public void buttonPressed(int choice) {
+    public void buttonPressed(int choice) throws IOException {
     	switch(choice) 
     	{
     	case 1:  newClicked(board.size());
         	break;
     	case 2:  board.solve();
+    		if(isServer) {
+    			//sendSolution(1);
+    			String[] s = {"solve"};
+    			servMain.sendMessage(s);
+    		}
+    		else if(isClient) {
+    			//sendSolution(2);
+    			String[] s = {"solve"};
+    			clientMain.sendMessage(s);
+    		}
         	break;
     	case 3:  errors = board.check();
     		boardPanel.setErrors(errors);
     		if(errors.size() == 0)
     			showMessage("No Errors Found!");
+    		if(isServer) {
+    			//sendSolution(1);
+    			String[] s = {"check"};
+    			servMain.sendMessage(s);
+    		}
+    		else if(isClient) {
+    			//sendSolution(2);
+    			String[] s = {"check"};
+    			clientMain.sendMessage(s);
+    		}
         	break;
     	default:
     		break;

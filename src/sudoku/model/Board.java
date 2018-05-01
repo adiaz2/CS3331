@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Random;
 
+
 /** An abstraction of Sudoku puzzle. */
 public class Board {
 	private int numEmpty; //used to count number of empty squares left. when 0, the board is solved	
