@@ -122,6 +122,8 @@ public class Server extends Thread
 			    		initializeBoard(bI, solution);
 			    		boardPanel.setBoard(board);
 			    		boardPanel.repaint();
+			    		reset = true; 
+			    		//received = ""; 
 					}
 					/*
 					else if(received.equals("declined new game"))
@@ -146,9 +148,9 @@ public class Server extends Thread
 					   i=0;
 					   System.out.println("WE ARE THE BAR");
 					   boardPanel.repaint();
+					   reset = true; 
 				   }
 					}
-					boardPanel.repaint(); 
 			   }
 		} catch (NumberFormatException e) {
 			e.printStackTrace();
@@ -164,6 +166,9 @@ public class Server extends Thread
    }
    public Board retSetBoard() {
 	   return board; 
+   }
+   public BoardPanel retSetpanel() {
+	   return boardPanel; 
    }
    private void initializeBoard(int[][] bI, int[][] solution){
 	reset = true; 

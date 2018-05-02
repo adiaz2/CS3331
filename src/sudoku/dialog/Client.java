@@ -117,6 +117,7 @@ public class Client extends Thread
 					if(received.equals("solve")) {
 						board.solve();
 						boardPanel.repaint();
+						reset = true; 
 					}
 					else if(received.equals("check")) {
 						errors = board.check();
@@ -143,6 +144,8 @@ public class Client extends Thread
 			    		initializeBoard(bI, solution);
 			    		boardPanel.setBoard(board);
 			    		boardPanel.repaint();
+			    		reset = true; 
+			    		//received = ""; 
 					}
 					/*
 					else if(received.equals("declined new game"))
@@ -164,9 +167,9 @@ public class Client extends Thread
 						   board.playerMove();
 						   i=0;
 						   boardPanel.repaint();
+						   reset = true; 
 					   }
 					}
-					boardPanel.repaint(); 
 				   }
 			} catch (NumberFormatException e) {
 				e.printStackTrace();

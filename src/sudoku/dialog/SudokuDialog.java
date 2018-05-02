@@ -143,15 +143,20 @@ public class SudokuDialog extends JFrame {
     		if(servMain.reset) {
     		   board = servMain.retSetBoard();
     		   servMain.reset = false;
+    		   boardPanel = servMain.boardPanel; 
+    		   boardPanel.repaint(); 
     		}   
     	}
     	if(isClient){
             if(clientMain.reset) {
     		   board = clientMain.retSetBoard();
     		   clientMain.reset = false; 
+    		   boardPanel = clientMain.boardPanel;
+    		   boardPanel.repaint(); 
             }   
     	}
     }
+
     /**
      * Callback to be invoked when a number button is clicked.
      * @param number Clicked number (1-9), or 0 for "X".
@@ -420,7 +425,7 @@ public class SudokuDialog extends JFrame {
         		board = new Board(size);
         		boardPanel.setBoard(board);
     			servMain.sendBoard(board.boardInputs);
-        		servMain.sendBoard(board.solvedPuzzle);
+        		servMain.sendBoard(board.solvedPuzzle); 
     		}
     		else if(isClient) {
     			//sendSolution(2);
