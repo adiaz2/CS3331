@@ -9,6 +9,7 @@ import javax.swing.*;
 import sudoku.model.Board;
 public class Client extends Thread
 {
+	public boolean reset = false; 
 	Socket sock;
     // reading from keyboard (keyRead object)
     BufferedReader keyRead = new BufferedReader(new InputStreamReader(System.in));
@@ -98,6 +99,9 @@ public class Client extends Thread
 			   pwrite.flush();
 		   }       
 	   }
+	   public Board retSetBoard() {
+		   return board; 
+	   }
 	   public void setBoard(Board b) {
 		   board = b;
 	   }
@@ -133,6 +137,8 @@ public class Client extends Thread
 						int[][] bI = getBoard();
 						System.out.println("3");
 			    		int[][] solution = getBoard();
+			    		//int[][] solution = new int[bI.length][bI.length];
+			    		//bI = solution; 
 			    		System.out.println("After");
 			    		initializeBoard(bI, solution);
 			    		boardPanel.setBoard(board);
@@ -160,6 +166,7 @@ public class Client extends Thread
 						   boardPanel.repaint();
 					   }
 					}
+					boardPanel.repaint(); 
 				   }
 			} catch (NumberFormatException e) {
 				e.printStackTrace();
@@ -174,9 +181,11 @@ public class Client extends Thread
 		   }
 	   }
 	   private void initializeBoard(int[][] bI, int[][] solution){
+		    reset = true; 
 	    	board = new Board(bI.length);
 	    	board.boardInputs = bI;
 	    	board.solvedPuzzle = solution;
+ 	
 	    	for(int i = 0; i<board.boardInputs.length; i++) {
 				for(int j = 0; j<board.boardInputs.length; j++) {
 					if(board.boardInputs[i][j] != 0)
@@ -185,6 +194,8 @@ public class Client extends Thread
 						board.boardGenerated[i][j] = false;
 				}
 			}
+	    	//board.boardInputs[0][0]= board.getNumEmpty();
+	    	
 	    }
 }
 

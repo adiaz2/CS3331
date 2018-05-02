@@ -12,6 +12,7 @@ import java.awt.*;
 import sudoku.model.Board;
 public class Server extends Thread
 {
+	public boolean reset = false; 
 	ServerSocket sersock;
     Socket sock;
     BufferedReader keyRead;
@@ -117,6 +118,7 @@ public class Server extends Thread
 						boardPanel.removeAll();
 						int[][] bI = getBoard();
 			    		int[][] solution = getBoard();
+			    		//bI = solution; 
 			    		initializeBoard(bI, solution);
 			    		boardPanel.setBoard(board);
 			    		boardPanel.repaint();
@@ -146,6 +148,7 @@ public class Server extends Thread
 					   boardPanel.repaint();
 				   }
 					}
+					boardPanel.repaint(); 
 			   }
 		} catch (NumberFormatException e) {
 			e.printStackTrace();
@@ -159,7 +162,11 @@ public class Server extends Thread
 		}   
 	   }
    }
+   public Board retSetBoard() {
+	   return board; 
+   }
    private void initializeBoard(int[][] bI, int[][] solution){
+	reset = true; 
    	board = new Board(bI.length);
    	board.boardInputs = bI;
    	board.solvedPuzzle = solution;

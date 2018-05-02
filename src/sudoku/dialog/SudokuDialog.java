@@ -46,6 +46,8 @@ import javax.swing.JTextArea;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 
+import com.sun.corba.se.impl.activation.ServerMain;
+
 import sudoku.model.Board;
 
 /**
@@ -60,7 +62,7 @@ public class SudokuDialog extends JFrame {
 
     /** Default dimension of the dialog. */
     private final static Dimension DEFAULT_SIZE = new Dimension(310, 430);
-
+    private boolean setAlready = false ; 
     private final static String IMAGE_DIR = "/image/";
     
     private Stack place = new Stack();
@@ -136,13 +138,27 @@ public class SudokuDialog extends JFrame {
     		boardPanel.setX_y(x*100 + y); //store the selected coordinates into the boardPanel
     		repaint(); //repaint boardPanel to draw a black square over the coordinate selection
     }
-    
+    public void linkBoards() {
+    	if(isServer){
+    		if(servMain.reset) {
+    		   board = servMain.retSetBoard();
+    		   servMain.reset = false;
+    		}   
+    	}
+    	if(isClient){
+            if(clientMain.reset) {
+    		   board = clientMain.retSetBoard();
+    		   clientMain.reset = false; 
+            }   
+    	}
+    }
     /**
      * Callback to be invoked when a number button is clicked.
      * @param number Clicked number (1-9), or 0 for "X".
      * @throws IOException 
      */
     private void numberClicked(int number) throws IOException{
+    	    linkBoards(); 
     		//get the currently selected x and y values
     		x_y = boardPanel.getX_y(); //gets the user's currently selected coordinates
     		
@@ -152,7 +168,7 @@ public class SudokuDialog extends JFrame {
     			return;
     		}
     		if(board.boardGenerated[x_y%100][x_y/100]) {
-    			showMessage("This number cannot be changed");
+    			showMessage("This number cannot be changed x:" +x_y%100+ " Y: "+x_y/100 );	
     			return;
     		}
     			
