@@ -19,7 +19,6 @@ import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.io.EOFException;
 import java.io.IOException;
 import java.net.BindException;
 import java.net.ConnectException;
@@ -42,7 +41,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTextArea;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 
@@ -74,7 +72,6 @@ public class SudokuDialog extends JFrame {
     /** Special panel to display a Sudoku board. */
     private BoardPanel boardPanel;
 
-    private ChatDialogUI cdUI;
     private Server servMain;
     private Client clientMain;
     private boolean isServer;
@@ -82,30 +79,14 @@ public class SudokuDialog extends JFrame {
     /** Message bar to display various messages. */
     private JLabel msgBar = new JLabel("");
     
-    private JToolBar toolBar = new JToolBar();
-    private JMenuBar menuBar = new JMenuBar();
-    private JMenu menu = new JMenu("Menu");
-    
     private JPanel curButtons;// these two are necessary for updating buttons allowed. 
     private BorderLayout mainLayout = new BorderLayout(); 
     
-    private JButton undoButton;
-    private JButton redoButton;
-    private JButton wirelessButton;
-    
-    private JMenuItem newGameMenuButton;
-    private JMenuItem solveMenuButton;
-    private JMenuItem checkMenuButton;
     
     private int lastMoveX = -1;
     private int lastMoveY = -1;
     private int lastMove = -1;
-    private boolean undoPossible = false;
-    
-    private int redoMoveX = -1;
-    private int redoMoveY = -1;
-    private int redoMove = -1;
-    private boolean redoPossible = false;
+
     
     /** Used to store the x,y coordinates that the user selects on the board. x = x_y/100; y = x_y%100;*/ 
     private int x_y;
@@ -217,10 +198,10 @@ public class SudokuDialog extends JFrame {
     		}
     		board.boardInputs[x_y%100][x_y/100] = number;
     		
-    		if(isServer) {
+    		if(isServer && servMain.isServer) {
 				String[] move = {Integer.toString(x_y%100), Integer.toString(x_y/100), Integer.toString(number)};
 				servMain.sendMessage(move);
-			}else if(isClient) {
+			}else if(isClient && clientMain.isClient) {
 				String[] move = {Integer.toString(x_y%100), Integer.toString(x_y/100), Integer.toString(number)};
 				clientMain.sendMessage(move);
 			}
@@ -273,8 +254,7 @@ public class SudokuDialog extends JFrame {
     	//First lets see if a user would like to host or connect to 
     	int port = 8000;
     	String host_ip;
-    	
-    	boolean isBindedToPort = false;
+
     	int tries = 5;
     	String serverIP = InetAddress.getLocalHost().getHostAddress();
     	if(verifyHost()) {
@@ -286,11 +266,8 @@ public class SudokuDialog extends JFrame {
 	    			}
     				tries--;
 		    		port = selectPort();
-		    		JOptionPane.showMessageDialog(null, "Server started on port: " + Integer.toString(port) + " and IP: " + serverIP,"Server Message",JOptionPane.INFORMATION_MESSAGE);
-		    		//System.out.println("Trying port:" + port);//debuggin' code
-		    		//System.out.println("Num tries left: " + bindingTries);
-		    		servMain = new Server(boardPanel, port);
-		    			    		
+		    		JOptionPane.showMessageDialog(null, "Server on port: " + Integer.toString(port) + " and IP: " + serverIP + "\nClick OK to start server","Server Message",JOptionPane.INFORMATION_MESSAGE);	  
+		    		servMain = new Server(boardPanel, port);    		
 		    		break;
 	    		}catch (BindException e){
 	    			JOptionPane.showMessageDialog(null, "Error: port already in use","Error Message",JOptionPane.ERROR_MESSAGE);
@@ -362,15 +339,16 @@ public class SudokuDialog extends JFrame {
        }
 
     }
-    public void checkWin() {
+    public void checkWin() throws IOException {
     	//if user successfully completes the board, congratulate and offer to start new game
 		if(board.isSolved()) {
 			int reply = JOptionPane.showConfirmDialog(null, "Congratulations!!!\nStart a New Game?");
 			if (reply == JOptionPane.YES_OPTION)
 		    {
-				board = new Board(board.size); //keeps the same size of current board
-		        boardPanel.setBoard(board); //makes the board panel use a new board
-		        repaint();
+				newClicked(board.size);
+//				board = new Board(board.size); //keeps the same size of current board
+//		        boardPanel.setBoard(board); //makes the board panel use a new board
+//		        repaint();
 		    }
 		}
     }
@@ -393,12 +371,14 @@ public class SudokuDialog extends JFrame {
     		      return;
     		    }
     		}
-    		if(isServer) {
+    		if(isServer && servMain.isServer) {
     			//sendSolution(1);
     			String[] s = {"new"};
     			servMain.sendMessage(s);
-    			if(servMain.newGameDeclined)
+    			if(servMain.newGameDeclined) {
+    				isServer = false;
     				return;
+    			}
     			//clear out the board and add a new board of the requested size
         		boardPanel.removeAll();
         		board = new Board(size);
@@ -406,18 +386,25 @@ public class SudokuDialog extends JFrame {
     			servMain.sendBoard(board.boardInputs);
         		servMain.sendBoard(board.solvedPuzzle);
     		}
-    		else if(isClient) {
+    		else if(isClient && clientMain.isClient) {
     			//sendSolution(2);
     			String[] s = {"new"};
     			clientMain.sendMessage(s);
-    			if(clientMain.newGameDeclined)
+    			if(clientMain.newGameDeclined) {
+    				isClient = false;
     				return;
+    			}
     			//clear out the board and add a new board of the requested size
         		boardPanel.removeAll();
         		board = new Board(size);
         		boardPanel.setBoard(board);
     			clientMain.sendBoard(board.boardInputs);
         		clientMain.sendBoard(board.solvedPuzzle);
+    		}
+    		else {
+    			boardPanel.removeAll();
+        		board = new Board(size);
+        		boardPanel.setBoard(board);
     		}
         //These two commented out will enable it to show less buttons when a new game is selected, 
         // however the screen when a new game is made will be blanked until you try to widen or shrink the screen 
@@ -471,12 +458,7 @@ public class SudokuDialog extends JFrame {
         }
 
      }
-    /**Removes all current buttons for no overlay */
-    private void removeCurButtons(){
-        curButtons = null;
-        remove(mainLayout.getLayoutComponent(BorderLayout.NORTH));
-        remove(mainLayout.getLayoutComponent(BorderLayout.CENTER));
-     }
+
     /** Create a control panel consisting of new and number buttons. */
     private JPanel makeControlPanel() {
     	
@@ -786,10 +768,10 @@ public class SudokuDialog extends JFrame {
     	for(int i = 0; i<board.size; i++) {
     		for(int j = 0; j<board.size; j++) {
     			String[] move = {Integer.toString(i), Integer.toString(j), Integer.toString(board.boardInputs[i][j])};
-    			if(isServer) {
+    			if(isServer && servMain.isServer) {
     				servMain.sendMessage(move);
     			}
-    			else if(isClient) {
+    			else if(isClient && clientMain.isClient) {
     				clientMain.sendMessage(move);
     			}
     		}
@@ -804,27 +786,31 @@ public class SudokuDialog extends JFrame {
     	case 1:  newClicked(board.size());
         	break;
     	case 2:  board.solve();
-    		if(isServer) {
+    		repaint();
+    		if(isServer && servMain.isServer) {
     			//sendSolution(1);
     			String[] s = {"solve"};
     			servMain.sendMessage(s);
+    		checkWin();
+    		
     		}
-    		else if(isClient) {
+    		else if(isClient && clientMain.isClient) {
     			//sendSolution(2);
     			String[] s = {"solve"};
     			clientMain.sendMessage(s);
+    			checkWin();
     		}
         	break;
     	case 3:  errors = board.check();
     		boardPanel.setErrors(errors);
     		if(errors.size() == 0)
     			showMessage("No Errors Found!");
-    		if(isServer) {
+    		if(isServer && servMain.isServer) {
     			//sendSolution(1);
     			String[] s = {"check"};
     			servMain.sendMessage(s);
     		}
-    		else if(isClient) {
+    		else if(isClient && clientMain.isClient) {
     			//sendSolution(2);
     			String[] s = {"check"};
     			clientMain.sendMessage(s);

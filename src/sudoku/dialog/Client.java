@@ -17,6 +17,7 @@ public class Client extends Thread
     PrintWriter pwrite;
     boolean gotMsg = false;
     boolean newGameDeclined = false;
+    boolean isClient;
     private LinkedList<Integer> errors;
 
     // receiving from server ( receiveRead  object)
@@ -29,7 +30,7 @@ public class Client extends Thread
 		boardPanel = bP;
 		sock = new Socket(host_ip, port);
 	    // reading from keyboard (keyRead object)
-		
+		isClient = true;
 	    keyRead = new BufferedReader(new InputStreamReader(System.in));
 	    // sending to client (pwrite object)
 	    ostream = sock.getOutputStream();
@@ -113,6 +114,7 @@ public class Client extends Thread
 					if(received.equals("solve")) {
 						board.solve();
 						boardPanel.repaint();
+
 					}
 					else if(received.equals("check")) {
 						errors = board.check();
@@ -123,18 +125,13 @@ public class Client extends Thread
 		    			//if user says no, don't do anything else
 		    			if (reply == JOptionPane.NO_OPTION || reply == JOptionPane.CANCEL_OPTION)
 		    		    {
-		    				//pwrite.println("declined new game");
+		    				isClient = true;
 		    				return;
 		    		    }
-		    			//pwrite.println("accepted new game");
-						System.out.println("1");
 						boardPanel.removeAll();
-						System.out.println("2");
 						int[][] bI = getBoard();
-						System.out.println("3");
 			    		int[][] solution = getBoard();
-			    		System.out.println("After");
-			    		initializeBoard(bI, solution);
+			    	 	initializeBoard(bI, solution);
 			    		boardPanel.setBoard(board);
 			    		boardPanel.repaint();
 					}

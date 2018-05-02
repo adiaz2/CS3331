@@ -7,7 +7,6 @@ import java.util.LinkedList;
 
 import javax.swing.JOptionPane;
 
-import java.awt.*;
 
 import sudoku.model.Board;
 public class Server extends Thread
@@ -23,12 +22,13 @@ public class Server extends Thread
     Board board;
     private LinkedList<Integer> errors;
     boolean gotMsg = false;
+    boolean isServer = false;
     boolean newGameDeclined = false;
 
 	public Server(BoardPanel bP, int port) throws Exception {
 		boardPanel = bP;
 		sersock = new ServerSocket(port);
-		
+		isServer = true;
 	    sock = sersock.accept( );
 	    // reading from keyboard (keyRead object)
 	    keyRead = new BufferedReader(new InputStreamReader(System.in));
@@ -110,7 +110,7 @@ public class Server extends Thread
 		    			//if user says no, don't do anything else
 		    			if (reply == JOptionPane.NO_OPTION || reply == JOptionPane.CANCEL_OPTION)
 		    		    {
-		    				//pwrite.println("declined new game");
+		    				isServer = true;
 		    				return;
 		    		    }
 		    			//pwrite.println("accepted new game");
@@ -154,7 +154,6 @@ public class Server extends Thread
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}   
 	   }
