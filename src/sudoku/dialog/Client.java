@@ -10,7 +10,11 @@ import sudoku.model.Board;
 public class Client extends Thread
 {
 	public boolean reset = false; 
-	Socket sock;
+	Socket sock; 
+	public int[][] prevBoard; 
+	public int cnt; 
+	public int override; 
+	boolean [][] sav; 
     // reading from keyboard (keyRead object)
     BufferedReader keyRead = new BufferedReader(new InputStreamReader(System.in));
     // sending to client (pwrite object)
@@ -112,12 +116,39 @@ public class Client extends Thread
 		   int[] move = new int[3];
 		   while(true) {
 			   try {
+				if(reset) {
+					boardPanel.repaint(); 
+				}
 				if((received = receiveRead.readLine()) != null) //receive from server
 				   {
 					if(received.equals("solve")) {
 						board.solve();
 						boardPanel.repaint();
 						reset = true; 
+					}else if(received.equals("update")) {
+						if(override == 0) {   
+						   //prevBoard = board.boardInputs; 
+						   boardPanel.removeAll();
+						   int[][] bI = getBoard();
+			    		   int[][] solution = getBoard();
+			    		   initializeBoard(bI, solution);
+			    		   boardPanel.setBoard(board);
+			    		   boardPanel.repaint();
+			    		   reset = true;
+						   override =1 ; 
+					     }else {
+					    	 if(cnt <3)
+					    	     prevBoard = board.boardInputs; 
+						     override = 1; 
+						     boardPanel.removeAll();
+						     int[][] bI = getBoard();
+			    		     int[][] solution = getBoard();
+			    		     initializeBoard(bI, solution);
+			    		     boardPanel.setBoard(board);
+			    		     boardPanel.repaint();
+			    		     reset = true; 
+			    		     cnt++; 
+					    }
 					}
 					else if(received.equals("check")) {
 						errors = board.check();
@@ -133,6 +164,8 @@ public class Client extends Thread
 		    		    }
 		    			//pwrite.println("accepted new game");
 						System.out.println("1");
+						override = 0; 
+						cnt = 0; 
 						boardPanel.removeAll();
 						System.out.println("2");
 						int[][] bI = getBoard();
@@ -143,6 +176,7 @@ public class Client extends Thread
 			    		System.out.println("After");
 			    		initializeBoard(bI, solution);
 			    		boardPanel.setBoard(board);
+			    		//prevBoard = board.boardInputs; 
 			    		boardPanel.repaint();
 			    		reset = true; 
 			    		//received = ""; 
@@ -184,23 +218,32 @@ public class Client extends Thread
 		   }
 	   }
 	   private void initializeBoard(int[][] bI, int[][] solution){
-		    reset = true; 
-	    	board = new Board(bI.length);
-	    	board.boardInputs = bI;
-	    	board.solvedPuzzle = solution;
- 	
-	    	for(int i = 0; i<board.boardInputs.length; i++) {
-				for(int j = 0; j<board.boardInputs.length; j++) {
-					if(board.boardInputs[i][j] != 0)
-						board.boardGenerated[i][j] = true;
-					else
-						board.boardGenerated[i][j] = false;
+			reset = true;
+			//sav = board.boardGenerated; 
+		   	board = new Board(bI.length);
+		   	board.boardInputs = bI;
+		   	board.solvedPuzzle = solution;
+		   	if(override == 0) {
+		   	   for(int i = 0; i<board.boardInputs.length; i++) {
+				   for(int j = 0; j<board.boardInputs.length; j++) {
+					  if(board.boardInputs[i][j] != 0)
+						 board.boardGenerated[i][j] = true;
+					  else
+						 board.boardGenerated[i][j] = false;
+				  }
 				}
-			}
-	    	//board.boardInputs[0][0]= board.getNumEmpty();
-	    	
-	    }
+		   	   //sav = board.boardGenerated; 
+		   	}else {
+		   		for(int i = 0; i<board.boardInputs.length; i++) {
+					for(int j = 0; j<board.boardInputs.length; j++) {
+						 if(prevBoard[i][j] != 0)
+							 board.boardGenerated[i][j] = true;
+						  else
+							 board.boardGenerated[i][j] = false;
+					  }
+					} 
+		   	}
+		   }
 }
-
 
 
