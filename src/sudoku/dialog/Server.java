@@ -11,7 +11,12 @@ import javax.swing.JOptionPane;
 import sudoku.model.Board;
 public class Server extends Thread
 {
+	public boolean reset = false; 
 	ServerSocket sersock;
+	boolean [][] sav ;
+	public int [][] prevBoard; 
+	int override ; 
+	public int cnt; 
     Socket sock;
     BufferedReader keyRead;
     OutputStream ostream;
@@ -93,13 +98,43 @@ public class Server extends Thread
 	   int[] move = new int[3];
 	   System.out.println("Set the bar");
 	   while(true) {
+		   if(reset) {
+				boardPanel.repaint(); 
+			}
 		   try {
 			if((received = receiveRead.readLine()) != null) //receive from server
 			   {
 					if(received.equals("solve")) {
 						board.solve();
 						boardPanel.repaint();
-					}
+					}else if(received.equals("update")) {
+						if( override == 0) {
+						   //prevBoard = board.boardInputs;
+						   boardPanel.removeAll();
+						   int[][] bI = getBoard();
+						   int[][] solution = getBoard();
+						   //bI = solution; 
+						   initializeBoard(bI, solution);
+						   boardPanel.setBoard(board);
+						   boardPanel.repaint();
+						   reset = true;
+						   override = 1;
+						   
+					   }else {  
+						   //sav = board.boardGenerated;
+						   if(cnt <3)
+						      prevBoard = board.boardInputs;
+						   boardPanel.removeAll();
+						   int[][] bI = getBoard();
+			    		   int[][] solution = getBoard();
+			    		   //bI = solution; 
+			    		   initializeBoard(bI, solution);
+			    	 	   boardPanel.setBoard(board);
+			    	 	   boardPanel.repaint();
+			    		   reset = true; 
+					       cnt++; 
+					   }
+			   }
 					else if(received.equals("check")) {
 						errors = board.check();
 			    		boardPanel.setErrors(errors);
@@ -110,16 +145,28 @@ public class Server extends Thread
 		    			//if user says no, don't do anything else
 		    			if (reply == JOptionPane.NO_OPTION || reply == JOptionPane.CANCEL_OPTION)
 		    		    {
+<<<<<<< HEAD
 		    				isServer = true;
+=======
+		    				//pwrite.println("declined new game");
+		    				
+>>>>>>> b485d3303fd6586d11b717e9685caf2a0d286fa2
 		    				return;
 		    		    }
 		    			//pwrite.println("accepted new game");
 						boardPanel.removeAll();
+						override = 0; 
+						cnt = 0; 
 						int[][] bI = getBoard();
 			    		int[][] solution = getBoard();
+			    		//bI = solution; 
 			    		initializeBoard(bI, solution);
+			    		
 			    		boardPanel.setBoard(board);
+			    		//prevBoard = board.boardInputs; 
 			    		boardPanel.repaint();
+			    		reset = true; 
+			    		//received = ""; 
 					}
 					/*
 					else if(received.equals("declined new game"))
@@ -144,6 +191,7 @@ public class Server extends Thread
 					   i=0;
 					   System.out.println("WE ARE THE BAR");
 					   boardPanel.repaint();
+					   reset = true; 
 				   }
 					}
 			   }
@@ -158,17 +206,37 @@ public class Server extends Thread
 		}   
 	   }
    }
+   public Board retSetBoard() {
+	   return board; 
+   }
+   public BoardPanel retSetpanel() {
+	   return boardPanel; 
+   }
    private void initializeBoard(int[][] bI, int[][] solution){
+	reset = true; 
+	sav = board.boardGenerated; 
    	board = new Board(bI.length);
    	board.boardInputs = bI;
    	board.solvedPuzzle = solution;
-   	for(int i = 0; i<board.boardInputs.length; i++) {
-			for(int j = 0; j<board.boardInputs.length; j++) {
-				if(board.boardInputs[i][j] != 0)
-					board.boardGenerated[i][j] = true;
-				else
-					board.boardGenerated[i][j] = false;
-			}
+   	if(override == 0) {
+   	   for(int i = 0; i<board.boardInputs.length; i++) {
+		   for(int j = 0; j<board.boardInputs.length; j++) {
+			  if(board.boardInputs[i][j] != 0)
+				 board.boardGenerated[i][j] = true;
+			  else
+				 board.boardGenerated[i][j] = false;
+		  }
 		}
+   	    sav = board.boardGenerated; 
+   	}else {
+   		for(int i = 0; i<board.boardInputs.length; i++) {
+			for(int j = 0; j<board.boardInputs.length; j++) {
+				 if(prevBoard[i][j] != 0)
+					 board.boardGenerated[i][j] = true;
+				  else
+					 board.boardGenerated[i][j] = false;
+			  }
+			}  
+   	}
    }
 }		

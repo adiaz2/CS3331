@@ -44,6 +44,8 @@ import javax.swing.JPanel;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 
+import com.sun.corba.se.impl.activation.ServerMain;
+
 import sudoku.model.Board;
 
 /**
@@ -58,7 +60,7 @@ public class SudokuDialog extends JFrame {
 
     /** Default dimension of the dialog. */
     private final static Dimension DEFAULT_SIZE = new Dimension(310, 430);
-
+    private boolean setAlready = false ; 
     private final static String IMAGE_DIR = "/image/";
     
     private Stack place = new Stack();
@@ -66,12 +68,17 @@ public class SudokuDialog extends JFrame {
 
     /** Sudoku board. */
     private Board board;
-    
+    private boolean init = true; 
     private LinkedList<Integer> errors;
 
     /** Special panel to display a Sudoku board. */
+<<<<<<< HEAD
     private BoardPanel boardPanel;
 
+=======
+    private BoardPanel boardPanel;  
+    private ChatDialogUI cdUI;
+>>>>>>> b485d3303fd6586d11b717e9685caf2a0d286fa2
     private Server servMain;
     private Client clientMain;
     private boolean isServer;
@@ -115,15 +122,35 @@ public class SudokuDialog extends JFrame {
      */
     private void boardClicked(int x, int y) {
     		boardPanel.setX_y(x*100 + y); //store the selected coordinates into the boardPanel
+    		linkBoards(); 
     		repaint(); //repaint boardPanel to draw a black square over the coordinate selection
     }
-    
+    public void linkBoards() {
+    	if(isServer){
+    		if(servMain.reset) {
+    		   board = servMain.retSetBoard();
+    		   servMain.reset = false;
+    		   boardPanel = servMain.boardPanel; 
+    		   boardPanel.repaint(); 
+    		}   
+    	}
+    	if(isClient){
+            if(clientMain.reset) {
+    		   board = clientMain.retSetBoard();
+    		   clientMain.reset = false; 
+    		   boardPanel = clientMain.boardPanel;
+    		   boardPanel.repaint(); 
+            }   
+    	}
+    }
+
     /**
      * Callback to be invoked when a number button is clicked.
      * @param number Clicked number (1-9), or 0 for "X".
      * @throws IOException 
      */
     private void numberClicked(int number) throws IOException{
+    	    linkBoards(); 
     		//get the currently selected x and y values
     		x_y = boardPanel.getX_y(); //gets the user's currently selected coordinates
     		
@@ -133,8 +160,11 @@ public class SudokuDialog extends JFrame {
     			return;
     		}
     		if(board.boardGenerated[x_y%100][x_y/100]) {
-    			showMessage("This number cannot be changed");
-    			return;
+    			linkBoards();
+    			if(board.boardGenerated[x_y%100][x_y/100]) {
+    			  showMessage("This number cannot be changed x:" +x_y%100+ " Y: "+x_y/100 );	
+    			  return;
+    			}
     		}
     			
     		
@@ -198,12 +228,44 @@ public class SudokuDialog extends JFrame {
     		}
     		board.boardInputs[x_y%100][x_y/100] = number;
     		
+<<<<<<< HEAD
     		if(isServer && servMain.isServer) {
 				String[] move = {Integer.toString(x_y%100), Integer.toString(x_y/100), Integer.toString(number)};
 				servMain.sendMessage(move);
 			}else if(isClient && clientMain.isClient) {
 				String[] move = {Integer.toString(x_y%100), Integer.toString(x_y/100), Integer.toString(number)};
 				clientMain.sendMessage(move);
+=======
+    		if(isServer) {
+    			if(init) {
+				   String[] move = {Integer.toString(x_y%100), Integer.toString(x_y/100), Integer.toString(number)};
+				   servMain.sendMessage(move);
+    			}else {
+	    			//sendSolution(1);
+	    			String[] s = {"update"};
+	    			servMain.sendMessage(s);
+	    			//clear out the board and add a new board of the requested size
+	        
+	    			servMain.sendBoard(board.boardInputs);
+	        		servMain.sendBoard(board.solvedPuzzle); 
+	    		
+    			}
+	    		
+			}else if(isClient) {
+ 				if(init) {
+				   String[] move = {Integer.toString(x_y%100), Integer.toString(x_y/100), Integer.toString(number)};
+				   clientMain.sendMessage(move);
+ 				}else {
+	   			   //sendSolution(1);
+    			   String[] s = {"update"};
+    			   clientMain.sendMessage(s);
+    			   //clear out the board and add a new board of the requested size
+        
+    			   clientMain.sendBoard(board.boardInputs);
+        		   clientMain.sendBoard(board.solvedPuzzle); 
+ 				}
+
+>>>>>>> b485d3303fd6586d11b717e9685caf2a0d286fa2
 			}
     		
     		showMessage(""); //clear any previous error messages
@@ -345,10 +407,21 @@ public class SudokuDialog extends JFrame {
 			int reply = JOptionPane.showConfirmDialog(null, "Congratulations!!!\nStart a New Game?");
 			if (reply == JOptionPane.YES_OPTION)
 		    {
+<<<<<<< HEAD
 				newClicked(board.size);
 //				board = new Board(board.size); //keeps the same size of current board
 //		        boardPanel.setBoard(board); //makes the board panel use a new board
 //		        repaint();
+=======
+				//board = new Board(board.size); //keeps the same size of current board
+		        //boardPanel.setBoard(board); //makes the board panel use a new board
+		        //repaint();
+				try {
+					newClicked(board.size); 
+				}catch(Exception e) {
+					System.out.println("Error"); 
+				}
+>>>>>>> b485d3303fd6586d11b717e9685caf2a0d286fa2
 		    }
 		}
     }
@@ -375,8 +448,13 @@ public class SudokuDialog extends JFrame {
     			//sendSolution(1);
     			String[] s = {"new"};
     			servMain.sendMessage(s);
+<<<<<<< HEAD
     			if(servMain.newGameDeclined) {
     				isServer = false;
+=======
+    			if(servMain.newGameDeclined)
+    				
+>>>>>>> b485d3303fd6586d11b717e9685caf2a0d286fa2
     				return;
     			}
     			//clear out the board and add a new board of the requested size
@@ -384,7 +462,7 @@ public class SudokuDialog extends JFrame {
         		board = new Board(size);
         		boardPanel.setBoard(board);
     			servMain.sendBoard(board.boardInputs);
-        		servMain.sendBoard(board.solvedPuzzle);
+        		servMain.sendBoard(board.solvedPuzzle); 
     		}
     		else if(isClient && clientMain.isClient) {
     			//sendSolution(2);
